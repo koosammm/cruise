@@ -123,14 +123,24 @@ main{padding:18px 16px 0;max-width:1180px;margin:0 auto}
  .nav.scrolled .brand{display:block}
 }
 @media (min-width:1080px){#view{grid-template-columns:repeat(3,1fr)}}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.hero-top .idchip{max-width:46vw;margin-top:-2px;box-shadow:var(--sh)}
+.pcf{display:none;background:var(--soft);border-radius:14px;padding:12px 14px;margin:2px 0 10px;text-align:center}
+.pcf.on{display:block}.pcf small{display:block;color:var(--mut);font-size:12px}.pcf b{display:block;font-size:26px;letter-spacing:.08em;margin:2px 0}.pcf a{color:var(--acc);font-weight:700;text-decoration:underline;cursor:pointer;font-size:13px}
+.idhint{font-size:13px;color:var(--r);margin:-4px 0 8px;display:none}
+.idhint.on{display:block}.idhint a{color:var(--acc);font-weight:700;text-decoration:underline;cursor:pointer}
+.foot{max-width:1180px;margin:28px auto 0;padding:18px 16px 0;border-top:1px solid var(--line);font-size:12px;color:var(--mut);line-height:1.7}
+.zoom .cap{position:absolute;left:0;right:0;bottom:14px;text-align:center;color:rgba(255,255,255,.75);font-size:12px}
+.qphone{display:flex;gap:8px;max-width:360px;margin:12px auto 0}.qphone input{flex:1;margin:0}
+.lead a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 </style>
 </head>
 <body>
 <header class="hero">
   <div class="hero-in">
-    <div class="eyebrow">DISNEY ADVENTURE ・ 連線代購</div>
+    <div class="hero-top"><div class="eyebrow">DISNEY ADVENTURE ・ 連線代購</div><button class="idchip" onclick="openId()">填寫身分</button></div>
     <h1 id="title">探險號代購</h1>
-    <p class="lead">郵輪限定好物，選好送出就完成，買到才付款。</p>
+    <p class="lead">代購連線商品持續更新，買到才開賣貨便付款<br>限新加坡迪士尼郵輪群粉絲下單　<a href="https://line.me/ti/g2/vfO6GKUb0nRbV7cx5Ckcu03Vang3lqS7V9_9oA" target="_blank" rel="noopener">加入 LINE 群</a></p>
     <div class="dls" id="dl"></div>
     <div class="steps">
       <div class="step"><span class="n">1</span><div><b>按「送出訂單」才算下單</b><small>只放進購物車不算，記得送出</small></div></div>
@@ -141,13 +151,14 @@ main{padding:18px 16px 0;max-width:1180px;margin:0 auto}
   <svg class="wave" viewBox="0 0 1440 40" preserveAspectRatio="none"><path d="M0,24 C240,44 480,4 720,20 C960,36 1200,8 1440,22 L1440,40 L0,40 Z" fill="#fbf7f1"/></svg>
 </header>
 <nav class="nav" id="nav">
-  <div class="nav-in"><div class="brand" id="brand">探險號代購</div><div class="tabs" id="tabs"></div><button class="idchip" id="idChip" onclick="openId()">填寫身分</button></div>
+  <div class="nav-in"><div class="brand" id="brand">探險號代購</div><div class="tabs" id="tabs"></div></div>
   <div class="subtabs" id="subtabs" style="display:none"></div>
 </nav>
 <main>
   <div id="notice" class="notice" style="display:none"></div>
 
   <div id="view"></div>
+  <div class="foot">商品圖片部分取自網路公開資源，僅供辨識款式參考，實際商品以船上現貨為準。如有侵權或不妥，請私訊管理員，我們會立即移除。</div>
 </main>
 
 <div class="bar" id="bar" style="display:none"><div class="in">
@@ -166,28 +177,47 @@ main{padding:18px 16px 0;max-width:1180px;margin:0 auto}
 </div></div>
 <div class="ov" id="idov" onclick="if(event.target===this)closeId()"><div class="sheet idsheet">
   <h3>填寫下單身分</h3>
-  <div class="gray" style="margin-bottom:10px">請填<b>社群暱稱、手機號碼、Email</b>（只用於這次代購的聯絡與出貨）。之後查訂單、取消要用<b>同一組暱稱＋手機</b>，<b style="color:var(--r)">請截圖記住</b>，打錯會查不到。</div>
-  <input id="nick" class="idin" placeholder="社群暱稱（例：20260518-布魯托）" autocomplete="off">
-  <input id="last3" class="idin" placeholder="手機號碼（09 開頭 10 碼）" inputmode="numeric" maxlength="12" autocomplete="tel">
-  <input id="email" class="idin" placeholder="Email" type="email" autocomplete="email">
+  <div class="gray" style="margin-bottom:10px">請填<b>社群暱稱、手機號碼、Email</b>（只用於這次代購的聯絡與出貨）。之後查訂單、取消<b>只要輸入手機號碼</b>，請務必填自己的手機，<b style="color:var(--r)">打錯會查不到訂單</b>。</div>
+  <input id="nick" class="idin" placeholder="社群暱稱（請跟 LINE 群組上的一樣）" autocomplete="off">
+  <input id="last3" class="idin" placeholder="手機號碼（09 開頭 10 碼）" inputmode="numeric" maxlength="12" autocomplete="tel" oninput="resetPhoneCf()">
+  <input id="email" class="idin" placeholder="Email" type="email" autocomplete="email" oninput="checkEmailHint()">
+  <div class="idhint" id="emailHint"></div>
+  <div class="pcf" id="pcf"><small>請確認手機號碼，打錯會查不到訂單</small><b id="pcfNum"></b><a onclick="editPhone()">號碼有錯，我要修改</a></div>
   <button class="go" id="whoBtn" style="width:100%;margin-top:6px" onclick="confirmIdent()">確認身分</button>
   <button class="btn2" style="width:100%;margin-top:8px" onclick="closeId()">先逛逛</button>
 </div></div>
 <div class="toast" id="toast"></div>
-<div class="zoom" id="zoom" onclick="this.classList.remove('on')"><img id="zoomImg" alt=""></div>
+<div class="zoom" id="zoom" onclick="this.classList.remove('on')"><img id="zoomImg" alt=""><div class="cap">圖片僅供參考，以船上實際商品為準</div></div>
 
 <script>
 // ===== 後台 API 網址（換後台時只要改這一行）=====
 const API_URL = 'https://script.google.com/macros/s/AKfycbwmS5yTJtGJjEYj7IGzroN_wd-7Pcc2xFtKm9JXRUYLk7CIAgi2G1Z2XQRxKlXks-HW/exec';
 // 把原本的 google.script.run 呼叫轉成 fetch，畫面程式不用改
 (function(){
+  // Google 偶爾回 404 或空白頁 → 視為「暫時失敗」自動重試；送出／取消帶同一組單號重送，後台只會寫一次
+  function soft(m){ const e = new Error(m); e.soft = true; return e; }
   async function call(action, params, post){
+    if (action==='submit' || action==='cancel') params = Object.assign({rid: Date.now().toString(36) + Math.random().toString(36).slice(2,8)}, params);
+    for (let n=0; ; n++) {
+      try { return await call1(action, params, post); }
+      catch (e) {
+        if (!e.soft || n>=3) {
+          if (e.soft && action==='submit') throw new Error('送出結果未確認，請先到「我的訂單」查看，不要重複送出');
+          if (e.soft && action==='cancel') throw new Error('取消結果未確認，請重新整理「我的訂單」查看');
+          throw e;
+        }
+        await new Promise(r=>setTimeout(r, 700*(n+1)));
+      }
+    }
+  }
+  async function call1(action, params, post){
     let r; const ac = new AbortController(); const tm = setTimeout(()=>ac.abort(), 25000);
     try {
       if (post) r = await fetch(API_URL, {method:'POST', body: JSON.stringify(Object.assign({api:action}, params)), signal:ac.signal});
       else { const q = new URLSearchParams(Object.assign({api:action}, params)); r = await fetch(API_URL + '?' + q.toString(), {cache:'no-store', signal:ac.signal}); }
-    } catch(e) { throw new Error(e.name==='AbortError' ? '連線逾時' : '網路連線失敗'); } finally { clearTimeout(tm); }
-    let j; try { j = await r.json(); } catch(e) { throw new Error('後台回應格式錯誤'); }
+    } catch(e) { throw soft(e.name==='AbortError' ? '連線逾時' : '網路連線失敗'); } finally { clearTimeout(tm); }
+    if (!r.ok) throw soft('系統忙碌（' + r.status + '）');
+    let j; try { j = await r.json(); } catch(e) { throw soft('後台回應格式錯誤'); }
     if (!j.ok) throw new Error(j.error || '系統忙碌，請稍後再試'); return j.data;
   }
   const map = {
@@ -195,7 +225,8 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwmS5yTJtGJjEYj7IGzroN_
     getThumb: (id)=>call('thumb', {id:id}),
     submitOrder: (nick,last3,lines,email)=>call('submit', {nick:nick,last3:last3,lines:lines,email:email}, true),
     getMyOrders: (nick,last3)=>call('orders', {nick:nick,last3:last3}, true),
-    cancelLine: (nick,last3,lid)=>call('cancel', {nick:nick,last3:last3,lid:lid}, true)
+    cancelLine: (nick,last3,lid)=>call('cancel', {nick:nick,last3:last3,lid:lid}, true),
+    whoIs: (phone)=>call('who', {phone:phone})
   };
   function runner(){ const st={ok:()=>{},fail:()=>{}}; const r={withSuccessHandler(f){st.ok=f;return r},withFailureHandler(f){st.fail=f;return r}};
     Object.keys(map).forEach(k=>{ r[k]=(...a)=>{ map[k](...a).then(d=>st.ok(d)).catch(e=>st.fail(e)); }; }); return r; }
@@ -214,11 +245,10 @@ function ident(){const ph=$('#last3').value.replace(/\D/g,'');return {nick:$('#n
 function saveIdent(){try{localStorage.setItem('id',JSON.stringify(ident()))}catch(e){}}
 function loadIdent(){try{const o=JSON.parse(localStorage.getItem('id')||'{}');if(o.nick)$('#nick').value=o.nick;if(o.phone)$('#last3').value=o.phone;if(o.email)$('#email').value=o.email;if(o.ok&&o.nick&&o.phone&&o.email)showIdent()}catch(e){}}
 let idOK=false;
-function showIdent(){const id=ident();idOK=true;const c=$('#idChip');c.textContent='✓ '+id.nick+'｜***'+id.last3;c.classList.add('ok');closeId()}
+function showIdent(){const id=ident();idOK=true;document.querySelectorAll('.idchip').forEach(c=>{c.textContent='✓ '+id.nick+'｜***'+id.last3;c.classList.add('ok')});closeId()}
 function openId(){$('#idov').classList.add('on');setTimeout(()=>$('#nick').focus(),50)}
 function closeId(){$('#idov').classList.remove('on')}
-function confirmIdent(){const id=ident();if(!id.nick){toast('請填社群暱稱');$('#nick').focus();return}if(!/^09\d{8}$/.test(id.phone)){toast('請填正確的手機號碼（09 開頭 10 碼）');$('#last3').focus();return}if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(id.email)){toast('請填正確的 Email');$('#email').focus();return}
-  try{localStorage.setItem('id',JSON.stringify(Object.assign(id,{ok:1})))}catch(e){}showIdent();toast('已記住，請截圖記下暱稱＋手機');if(myTab)renderMine()}
+function confirmIdent(){const id=ident();if(!id.nick){toast('請填社群暱稱');$('#nick').focus();return}if(!/^09\d{8}$/.test(id.phone)){toast('請填正確的手機號碼（09 開頭 10 碼）');$('#last3').focus();return}if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(id.email)){toast('請填正確的 Email');$('#email').focus();return}const sg=emailSuggest(id.email);if(sg&&emailWarned!==id.email){emailWarned=id.email;checkEmailHint();toast('Email 好像打錯了，請確認；確定沒錯再按一次');return}if(phoneOK!==id.phone){phoneOK=id.phone;$('#pcfNum').textContent=fmtPhone(id.phone);$('#pcf').classList.add('on');$('#whoBtn').textContent='號碼正確，確認身分';return}const b=$('#whoBtn');b.disabled=true;b.textContent='確認中…';const done=()=>{b.disabled=false;resetPhoneCf();const x=ident();try{localStorage.setItem('id',JSON.stringify(Object.assign(x,{ok:1})))}catch(e){}showIdent();toast('已記住，之後查訂單只要輸入手機');if(myTab)renderMine()};google.script.run.withSuccessHandler(old=>{old=String(old||'').trim();if(old&&old.replace(/\s+/g,'')!==id.nick.replace(/\s+/g,'')&&confirm('這支手機之前是用「'+old+'」下單。\n\n按「確定」沿用「'+old+'」（建議，方便管理員對帳）\n按「取消」改用「'+id.nick+'」'))$('#nick').value=old;done()}).withFailureHandler(()=>done()).whoIs(id.phone)}
 function editIdent(){openId()}
 function needId(){if(idOK)return false;openId();return true}
 function nz(o){['price','usd','quota','alloc','rank','taken'].forEach(k=>{if(o[k]===undefined)o[k]=(k==='taken'?0:null)});return o}
@@ -242,15 +272,26 @@ function load(){
     else toast('連線不穩，請稍後再試');
   }).getCatalog();
 }
+function toListTop(){requestAnimationFrame(()=>{const m=document.querySelector('main');if(!m)return;const y=Math.max(0,m.getBoundingClientRect().top+window.scrollY-$('#nav').offsetHeight-8);if(window.scrollY>y)window.scrollTo({top:y,behavior:'auto'})})}
+
+const EMAIL_FIX={'gmial.com':'gmail.com','gmai.com':'gmail.com','gmail.co':'gmail.com','gmail.con':'gmail.com','gamil.com':'gmail.com','gnail.com':'gmail.com','gmail.cm':'gmail.com','gmaill.com':'gmail.com','gmail.com.tw':'gmail.com','yahoo.com.t':'yahoo.com.tw','yahoo.con':'yahoo.com','yaho.com.tw':'yahoo.com.tw','yahooo.com.tw':'yahoo.com.tw','yahoo.tw':'yahoo.com.tw','hotmial.com':'hotmail.com','hotmail.con':'hotmail.com','outlok.com':'outlook.com','outlook.con':'outlook.com','icloud.con':'icloud.com','iclod.com':'icloud.com'};
+function emailSuggest(e){const m=String(e||'').trim().match(/^([^@\s]+)@([^@\s]+)$/);if(!m)return '';const dm=m[2].toLowerCase();let f=EMAIL_FIX[dm];if(!f&&/\.con$/.test(dm))f=dm.replace(/\.con$/,'.com');return f?m[1]+'@'+f:''}
+let emailWarned='';
+function checkEmailHint(){const s=emailSuggest($('#email').value),h=$('#emailHint');if(s){h.innerHTML='是不是 <b>'+esc(s)+'</b>？<a onclick="fixEmail()">改成這個</a>';h.classList.add('on')}else{h.classList.remove('on');h.innerHTML=''}}
+function fixEmail(){const s=emailSuggest($('#email').value);if(s)$('#email').value=s;checkEmailHint()}
+let phoneOK='';
+function fmtPhone(p){return p.slice(0,4)+'-'+p.slice(4,7)+'-'+p.slice(7)}
+function resetPhoneCf(){phoneOK='';$('#pcf').classList.remove('on');$('#whoBtn').textContent='確認身分'}
+function editPhone(){resetPhoneCf();$('#last3').focus()}
 function render(){
   const s=DATA.settings;
-  $('#title').textContent=s['團名']||'探險號代購';
+  (()=>{const t=String(s['團名']||'探險號代購').trim(),i=t.indexOf(' ');$('#title').innerHTML=i>0?esc(t.slice(0,i))+' <span style="white-space:nowrap">'+esc(t.slice(i+1))+'</span>':esc(t)})();
   $('#dl').innerHTML=[['OBG 房間禮品',s['OBG截止']],['其他商品',s['連線截止']]].map(([t,iso])=>{const d=new Date(iso),ms=d-new Date(),days=Math.ceil(ms/86400000);const w='日一二三四五六'[new Date(d.getTime()+8*3600e3).getUTCDay()];const tt=fmtDl(iso).replace(' ','（'+w+'）');const cd=ms<=0?'<em class="done">已截止</em>':(days<=1?'<em>最後 '+Math.max(1,Math.ceil(ms/3600000))+' 小時</em>':'<em>還有 '+days+' 天</em>');return '<div class="dlc"><span>'+t+' 收單截止</span><b>'+tt+'</b>'+cd+'</div>'}).join('');$('#brand').textContent=s['團名']||'探險號代購';
   if(s['公告']){$('#notice').style.display='block';$('#notice').textContent=s['公告']}
   document.querySelectorAll('.gObg').forEach(e=>e.textContent=fmtDl(s['OBG截止']));document.querySelectorAll('.gLive').forEach(e=>e.textContent=fmtDl(s['連線截止']));document.querySelectorAll('.gMin').forEach(e=>e.textContent=s['後悔期分鐘']||10);
   const tabs=$('#tabs');tabs.innerHTML='';
-  CATS.forEach(([k,l])=>{const b=document.createElement('button');b.textContent=l;b.className=(!myTab&&tab===k)?'on':'';b.onclick=()=>{myTab=false;tab=k;render()};tabs.appendChild(b)});
-  const mb=document.createElement('button');mb.textContent='📋 我的訂單';mb.className=myTab?'on':'';mb.onclick=()=>{myTab=true;render()};tabs.appendChild(mb);
+  CATS.forEach(([k,l])=>{const b=document.createElement('button');b.textContent=l;b.className=(!myTab&&tab===k)?'on':'';b.onclick=()=>{myTab=false;tab=k;render();toListTop()};tabs.appendChild(b)});
+  const mb=document.createElement('button');mb.textContent='📋 我的訂單';mb.className=myTab?'on':'';mb.onclick=()=>{myTab=true;render();toListTop()};tabs.appendChild(mb);
   const st0=$('#subtabs');st0.innerHTML='';st0.style.display='none';
   if(myTab){renderMine();return}
   const v=$('#view');v.innerHTML='';
@@ -262,7 +303,7 @@ function render(){
   const TABNOTE={OBG:'OBG 為郵輪官方房間禮品，收單至 '+fmtDl(DATA.settings['OBG截止'])+'，由管理員出發前統一預訂。金額已含代買費。','一口價':'一口價已含代買費，依送出順序排名額。水壺／爆米花桶＝船上結帳價×33＋500（不另收代買費），價格上船確認。'};
   if(TABNOTE[tab]){const n=document.createElement('div');n.className='notice';n.textContent=TABNOTE[tab];v.appendChild(n)}
   if(tab==='一般'){const n=document.createElement('div');n.className='notice';n.textContent='船上近期多項商品漲價，價格以船上實際標價為準，回台依實際結帳價結算。';v.appendChild(n)}
-  if(subs.length){const st=$('#subtabs');st.style.display='flex';['全部'].concat(subs).forEach(s=>{const b=document.createElement('button');b.className=s===sub?'on':'';b.innerHTML=esc(s)+'<i>'+(s==='全部'?all.length:all.filter(i=>i.sub===s).length)+'</i>';b.onclick=()=>{sub=s;render();const y=$('main').getBoundingClientRect().top+window.scrollY-$('#nav').offsetHeight;if(window.scrollY>y)window.scrollTo({top:y})};st.appendChild(b)})}
+  if(subs.length){const st=$('#subtabs');st.style.display='flex';['全部'].concat(subs).forEach(s=>{const b=document.createElement('button');b.className=s===sub?'on':'';b.innerHTML=esc(s)+'<i>'+(s==='全部'?all.length:all.filter(i=>i.sub===s).length)+'</i>';b.onclick=()=>{sub=s;render();toListTop()};st.appendChild(b)})}
   const showHdr=tab==='一口價'||(tab==='一般'&&sub==='全部');let lastSub='';
   items.forEach(it=>{
     if(showHdr&&it.sub&&it.sub!==lastSub){lastSub=it.sub;const h=document.createElement('div');h.className='sec';h.innerHTML=esc(SUBTXT[it.sub]||it.sub)+'<span>'+items.filter(x=>x.sub===it.sub).length+' 件</span>';v.appendChild(h)}
@@ -377,9 +418,10 @@ function submit(){
   google.script.run.withSuccessHandler(r=>{b.disabled=false;b.textContent='確定送出';cart={};closeCart();bar();toast('已送出，訂單 '+r.orderId);myTab=true;render();load()})
     .withFailureHandler(e=>{b.disabled=false;b.textContent='確定送出';toast(e.message)}).submitOrder(id.nick,id.phone,lines,id.email);
 }
+function queryPhone(){const ph=($('#qphone').value||'').replace(/\D/g,'');if(!/^09\d{8}$/.test(ph)){toast('請填正確的手機號碼（09 開頭 10 碼）');return}$('#last3').value=ph;renderMine()}
 function renderMine(){
   const v=$('#view');const id=ident();
-  if(!idOK||!id.nick||id.phone.length<10){v.innerHTML='<div class="empty">先填暱稱＋手機才能看訂單<br><br><button class="go" onclick="openId()">填寫身分</button></div>';return}
+  if(!/^09\d{8}$/.test(id.phone)){v.innerHTML='<div class="empty">輸入下單時填的手機號碼，就能查看訂單<div class="qphone"><input id="qphone" class="idin" placeholder="手機號碼（09 開頭 10 碼）" inputmode="numeric" maxlength="12"><button class="go" onclick="queryPhone()">查詢</button></div></div>';return}
   v.innerHTML='<div class="empty">載入中…</div>';
   google.script.run.withSuccessHandler(r=>{
     r.lines.forEach(nz);

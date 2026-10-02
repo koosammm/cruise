@@ -178,14 +178,22 @@ main{padding:18px 16px 0;max-width:1180px;margin:0 auto}
 .card.hasSlot .slot,.card.hasSlot .slot:empty{display:flex;min-height:40px}}
 .memo{display:block;width:100%;padding:11px 16px;border:1px solid var(--line);border-radius:16px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);margin:0 0 12px;resize:none;line-height:1.5}
 .memo::placeholder{color:#a79e94}
+.eyebrow{letter-spacing:.14em}
+.lead{font-size:13px;line-height:1.6}
+@media (min-width:760px){.lead{font-size:14px}}
+.lead .hl{font-weight:800}
+.chgid{display:inline-block;margin:6px 0 14px;font-size:13px;color:var(--mut);text-decoration:underline;cursor:pointer;background:none;border:0;font-family:inherit;grid-column:1/-1}
+.pager{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 0 10px}
+.pager button{background:#fff;color:var(--ink);border:1.5px solid var(--line);border-radius:999px;padding:9px 18px;font-size:14px;font-weight:700;font-family:inherit}
+.pager button[disabled]{opacity:.35}.pager span{font-size:13px;color:var(--mut)}
 </style>
 </head>
 <body>
 <header class="hero">
   <div class="hero-in">
-    <div class="hero-top"><div class="eyebrow">DISNEY ADVENTURE ・ 連線代購</div><button class="idchip" onclick="openId()">填寫身分</button></div>
+    <div class="hero-top"><div class="eyebrow">DISNEY ADVENTURE ・ 連線代購</div><button class="idchip" id="idchip" onclick="openId()">我要下單</button></div>
     <h1 id="title">探險號代購</h1>
-    <p class="lead">代購連線商品持續更新，買到才開賣貨便付款<br>限新加坡迪士尼郵輪群粉絲下單　<a href="https://line.me/ti/g2/vfO6GKUb0nRbV7cx5Ckcu03Vang3lqS7V9_9oA" target="_blank" rel="noopener">加入 LINE 群</a></p>
+    <p class="lead">代購連線商品<span class="hl">持續更新</span>，買到才開賣貨便付款<br>限新加坡迪士尼郵輪群粉絲下單　<a href="https://line.me/ti/g2/vfO6GKUb0nRbV7cx5Ckcu03Vang3lqS7V9_9oA" target="_blank" rel="noopener">加入 LINE 群</a></p>
     <div class="dls" id="dl"></div>
     <div class="steps">
       <div class="step"><span class="n">1</span><div><b>按「送出訂單」才算下單</b><small>只放進購物車不算，記得送出</small></div></div>
@@ -298,7 +306,9 @@ function ident(){const ph=$('#last3').value.replace(/\D/g,'');return {nick:$('#n
 function saveIdent(){try{localStorage.setItem('id',JSON.stringify(ident()))}catch(e){}}
 function loadIdent(){try{const o=JSON.parse(localStorage.getItem('id')||'{}');if(o.nick)$('#nick').value=o.nick;if(o.phone)$('#last3').value=o.phone;if(o.email)$('#email').value=o.email;if(o.ok&&o.nick&&o.phone&&o.email)showIdent()}catch(e){}}
 let idOK=false;
-function showIdent(){const id=ident();idOK=true;document.querySelectorAll('.idchip').forEach(c=>{c.textContent='✓ '+id.nick+'｜***'+id.last3;c.classList.add('ok')});closeId()}
+function showIdent(){const id=ident();idOK=true;document.querySelectorAll('.idchip').forEach(c=>{c.textContent='📋 我的訂單';c.classList.add('ok');c.onclick=goMine});closeId()}
+function gopg(d){pg+=d;render();toListTop()}
+function goMine(){myTab=true;render();toListTop()}
 function openId(){$('#idov').classList.add('on');setTimeout(()=>$('#nick').focus(),50)}
 function closeId(){$('#idov').classList.remove('on')}
 function confirmIdent(){const id=ident();if(!id.nick){toast('請填社群暱稱');$('#nick').focus();return}if(!/^09\d{8}$/.test(id.phone)){toast('請填正確的手機號碼（09 開頭 10 碼）');$('#last3').focus();return}if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(id.email)){toast('請填正確的 Email');$('#email').focus();return}const sg=emailSuggest(id.email);if(sg&&emailWarned!==id.email){emailWarned=id.email;checkEmailHint();toast('Email 好像打錯了，請確認；確定沒錯再按一次');return}if(phoneOK!==id.phone){phoneOK=id.phone;$('#pcfNum').textContent=fmtPhone(id.phone);$('#pcf').classList.add('on');$('#whoBtn').textContent='號碼正確，確認身分';return}const b=$('#whoBtn');b.disabled=true;b.textContent='確認中…';const done=()=>{b.disabled=false;resetPhoneCf();const x=ident();try{localStorage.setItem('id',JSON.stringify(Object.assign(x,{ok:1})))}catch(e){}showIdent();toast('已記住，之後查訂單只要輸入手機');if(myTab)renderMine()};google.script.run.withSuccessHandler(async old=>{old=String(old||'').trim();if(old&&old.replace(/\s+/g,'')!==id.nick.replace(/\s+/g,'')&&(await ask('這支手機之前是用「'+old+'」下單。\n建議沿用同一個暱稱，方便管理員對帳。','沿用「'+old+'」','改用「'+id.nick+'」')))$('#nick').value=old;done()}).withFailureHandler(()=>done()).whoIs(id.phone)}
@@ -339,7 +349,7 @@ function editPhone(){resetPhoneCf();$('#last3').focus()}
 
 function ask(msg,ok,no){return new Promise(res=>{const d=$('#dlg');$('#dlgMsg').textContent=msg;$('#dlgOk').textContent=ok||'確定';$('#dlgNo').textContent=no||'取消';$('#dlgNo').style.display=no===null?'none':'';
   $('#dlgOk').onclick=()=>{d.classList.remove('on');res(true)};$('#dlgNo').onclick=()=>{d.classList.remove('on');res(false)};d.classList.add('on')})}
-const LUCK=new Set(['O06','O07','O08']);
+const LUCK=new Set(['O06','O07','O08']);const PAGE=20;let pg=0,pgKey='';
 function render(){
   const s=DATA.settings;
   (()=>{const t=String(s['團名']||'探險號代購').trim(),i=t.indexOf(' ');$('#title').innerHTML=i>0?esc(t.slice(0,i))+' <span style="white-space:nowrap">'+esc(t.slice(i+1))+'</span>':esc(t)})();
@@ -348,22 +358,24 @@ function render(){
   document.querySelectorAll('.gObg').forEach(e=>e.textContent=fmtDl(s['OBG截止']));document.querySelectorAll('.gLive').forEach(e=>e.textContent=fmtDl(s['連線截止']));document.querySelectorAll('.gMin').forEach(e=>e.textContent=s['後悔期分鐘']||10);
   const tabs=$('#tabs');tabs.innerHTML='';
   CATS.forEach(([k,l])=>{const b=document.createElement('button');b.textContent=l;b.className=(!myTab&&tab===k)?'on':'';b.onclick=()=>{myTab=false;tab=k;render();toListTop()};tabs.appendChild(b)});
-  const mb=document.createElement('button');mb.textContent='📋 我的訂單';mb.className=myTab?'on':'';mb.onclick=()=>{myTab=true;render();toListTop()};tabs.appendChild(mb);
   const st0=$('#subtabs');st0.innerHTML='';st0.style.display='none';
   if(myTab){renderMine();return}
   const v=$('#view');v.innerHTML='';
   const all=DATA.items.filter(i=>!i.parent&&catOf(i)===tab&&i.status!=='下架');
   const subs=tab==='一般'?[...new Set(all.map(i=>i.sub).filter(Boolean))]:[];
   if(subs.indexOf(sub)<0)sub='全部';
-  const items=all.filter(i=>sub==='全部'||i.sub===sub);
-  if(!items.length){v.innerHTML='<div class="empty">這區還沒有商品</div>'}
-  const TABNOTE={'新加坡':'新加坡機場／超市購買，全部一口價，已含代買費。',OBG:'OBG 為郵輪官方房間禮品，收單至 '+fmtDl(DATA.settings['OBG截止'])+'，由管理員出發前統一預訂。金額已含代買費。','一口價':'一口價已含代買費，依送出順序排名額。水壺／爆米花桶＝船上結帳價×33＋500（不另收代買費），價格上船確認，請留意船上時常缺貨。'};
+  const itemsAll=all.filter(i=>sub==='全部'||i.sub===sub);
+  const key=tab+'|'+sub;if(key!==pgKey){pgKey=key;pg=0}
+  const pages=Math.max(1,Math.ceil(itemsAll.length/PAGE));if(pg>=pages)pg=pages-1;
+  const items=itemsAll.slice(pg*PAGE,pg*PAGE+PAGE);
+  if(!itemsAll.length){v.innerHTML='<div class="empty">這區還沒有商品</div>'}
+  const TABNOTE={'新加坡':'新加坡機場／超市購買，全部一口價，已含代買費。',OBG:'OBG（Onboard Gifts）房間禮品價格已含代買費，需於出發前三天訂購，故收單至 '+fmtDl(DATA.settings['OBG截止'])+'。','一口價':'標價已含代買費，依訂單送出順序排名額。水壺／爆米花桶＝船上結帳價×33＋500（不另收代買費），價格上船確認。'};
   if(TABNOTE[tab]){const n=document.createElement('div');n.className='notice';n.textContent=TABNOTE[tab];v.appendChild(n)}
   if(tab==='一般'){const n=document.createElement('div');n.className='notice';n.textContent='船上近期多項商品漲價，價格以船上實際標價為準，回台依實際結帳價結算。';v.appendChild(n)}
   if(subs.length){const st=$('#subtabs');st.style.display='flex';['全部'].concat(subs).forEach(s=>{const b=document.createElement('button');b.className=s===sub?'on':'';b.innerHTML=esc(s)+'<i>'+(s==='全部'?all.length:all.filter(i=>i.sub===s).length)+'</i>';b.onclick=()=>{sub=s;render();toListTop()};st.appendChild(b)})}
   const showHdr=tab==='一口價'||(tab==='一般'&&sub==='全部');let lastSub='';
   items.forEach(it=>{
-    if(showHdr&&it.sub&&it.sub!==lastSub){lastSub=it.sub;const h=document.createElement('div');h.className='sec';h.innerHTML=esc(SUBTXT[it.sub]||it.sub)+'<span>'+items.filter(x=>x.sub===it.sub).length+' 件</span>';v.appendChild(h)}
+    if(showHdr&&it.sub&&it.sub!==lastSub){lastSub=it.sub;const h=document.createElement('div');h.className='sec';h.innerHTML=esc(SUBTXT[it.sub]||it.sub)+'<span>'+itemsAll.filter(x=>x.sub===it.sub).length+' 件</span>';v.appendChild(h)}
     const ks=kids(it);
     const soldAll=it.status==='售完'||(ks.length>0&&ks.every(k=>k.status==='售完'));
     const c=document.createElement('div');c.className='card'+(soldAll?' soldout':'');c.dataset.sub=it.sub||'';
@@ -376,12 +388,13 @@ function render(){
         '<input class="note" id="x-'+it.id+'" placeholder="請填想要的款式／尺寸" style="display:none;flex:1 1 100%">';
     }
     c.innerHTML='<div class="media">'+imgHtml(it.id,img0,ks.length?ks[0].id:null)+((LUCK.has(it.id)||/碰運氣/.test(it.name+(it.desc||'')))?'<span class="badge luck">碰運氣・不保證</span>':(it.quota?'<span class="badge">限量 '+it.quota+'</span>':''))+(soldAll?'<span class="badge sold">船上缺貨</span>':'')+'</div>'+
-      '<div class="cb"><div class="nm">'+esc(it.name)+'</div><div class="ds">'+esc(it.desc||'')+'</div><div class="pr" id="p-'+it.id+'">'+priceHtml(it,ks)+'</div><div class="tg" id="t-'+it.id+'">'+tagsHtml(it,ks,null)+'</div>'+
-      '<div class="slot">'+(pick||((/備註/.test(it.desc||'')||needNote(it,ks))?'<input class="note" id="n-'+it.id+'" placeholder="'+(needNote(it,ks)?'請填想要的品項':'備註（款式／尺寸／角色）')+'">':''))+'</div><div class="row"><div class="qty"><button onclick="q(\''+it.id+'\',-1)">−</button><span id="q-'+it.id+'">1</span><button onclick="q(\''+it.id+'\',1)">＋</button></div>'+
+      '<div class="cb"><div class="nm">'+esc(it.name)+'</div><div class="ds">'+esc(/^請填/.test(it.desc||'')?'':(it.desc||''))+'</div><div class="pr" id="p-'+it.id+'">'+priceHtml(it,ks)+'</div><div class="tg" id="t-'+it.id+'">'+tagsHtml(it,ks,null)+'</div>'+
+      '<div class="slot">'+(pick||((/備註/.test(it.desc||'')||needNote(it,ks))?'<input class="note" id="n-'+it.id+'" placeholder="'+(needNote(it,ks)?noteHint(it):'備註（款式／尺寸／角色）')+'">':''))+'</div><div class="row"><div class="qty"><button onclick="q(\''+it.id+'\',-1)">−</button><span id="q-'+it.id+'">1</span><button onclick="q(\''+it.id+'\',1)">＋</button></div>'+
       '<button class="add" id="a-'+it.id+'" '+((isClosed||soldAll)?'disabled':'')+' onclick="add(\''+it.id+'\')">'+(isClosed?'已截止':(soldAll?'缺貨':(isFull(it,ks,null)?'加入候補':'加入')))+'</button>'+
       '</div></div>';
     v.appendChild(c);
   });
+  if(pages>1){const pgr=document.createElement('div');pgr.className='pager';pgr.innerHTML='<button '+(pg<=0?'disabled':'')+' onclick="gopg(-1)">‹ 上一頁</button><span>第 '+(pg+1)+' / '+pages+' 頁・共 '+itemsAll.length+' 件</span><button '+(pg>=pages-1?'disabled':'')+' onclick="gopg(1)">下一頁 ›</button>';v.appendChild(pgr)}
   (()=>{const cs=[...v.querySelectorAll('.card')],g={};cs.forEach(c=>{(g[c.dataset.sub]=g[c.dataset.sub]||[]).push(c)});
     Object.values(g).forEach(arr=>{const has={hasDs:'.ds:not(:empty)',hasFx:'.pr small',hasTg:'.tg:not(:empty)',hasSlot:'.slot:not(:empty)'};const cls=Object.keys(has).filter(k=>arr.some(c=>c.querySelector(has[k])));arr.forEach(c=>c.classList.add(...cls))})})();
   bar();
@@ -392,7 +405,8 @@ function kids(it){return DATA.items.filter(k=>k.parent===it.id&&k.status!=='下�
 function fee(p){return Math.round(p*0.1)}
 function dp(k){return k.mode==='一般'?k.price+fee(k.price):k.price}          // 客人要付的單價（一般商品含 10%）
 function lineAmt(price,mode,q){return (mode==='一般'?price+fee(price):price)*q}
-function needNote(it,ks){return !ks.length&&/^其他/.test(it.name||'')}
+function needNote(it,ks){return !ks.length&&(/^其他/.test(it.name||'')||/^請填/.test(it.desc||''))}
+function noteHint(it){return /^請填/.test(it.desc||'')?it.desc:'請填想要的品項'}
 function isOther(k){return /-9$/.test(k.id)||/^其他/.test(k.opt||'')}
 function fx(k){                                                               // 小字公式（不寫中文）
   const sg=k.tax==='SGD',cur=sg?'SGD':'USD',rate=sg?26:33,t18='';
@@ -458,7 +472,7 @@ function add(pid){
   const it=DATA.items.find(i=>i.id===pid);const ks=kids(it);let t=it,other='';
   if(ks.length){const sid=$('#o-'+pid).value;if(!sid){toast('請先選擇款式');$('#o-'+pid).focus();return}t=ks.find(k=>k.id===sid);
     if(isOther(t)){other=$('#x-'+pid).value.trim();if(!other){toast('請填想要的款式／尺寸');$('#x-'+pid).focus();return}}}
-  if(needNote(it,ks)&&!($('#n-'+pid).value.trim())){toast('請填想要的品項');$('#n-'+pid).focus();return}
+  if(needNote(it,ks)&&!($('#n-'+pid).value.trim())){toast(noteHint(it));$('#n-'+pid).focus();return}
   const n=$('#n-'+pid);const note=[other,n?n.value.trim():''].filter(Boolean).join('；');
   const name=it.name+(t.opt?'｜'+t.opt:'');const key=t.id+(other?'|'+other:'');
   const prev=cart[key];
@@ -486,15 +500,16 @@ function renderMine(){
   v.innerHTML='<div class="empty">載入中…</div>';
   google.script.run.withSuccessHandler(r=>{
     r.lines.forEach(nz);
-    if(!r.lines.length){v.innerHTML='<div class="empty">還沒有訂單</div>';return}
+    const CHG='<button class="chgid" onclick="openId()">'+esc(id.nick)+'｜***'+id.last3+'　更改身分資料</button>';
+    if(!r.lines.length){v.innerHTML=CHG+'<div class="empty">還沒有訂單</div>';return}
     const cls={'已登記':'a','已買到':'b','部分買到':'b','候補':'e','沒買到':'c','申請取消':'a','已取消':'d'};
     let pay=0,bought=0;
-    let h=r.lines.map(l=>{
+    let h=r.lines.map((l,i)=>{
       const gq=(l.status==='已買到'||l.status==='部分買到')?(l.alloc!==null?l.alloc:l.qty):0;if(gq>0){bought++;if(l.price!==null)pay+=lineAmt(l.price,l.mode,gq)}
       const rank=(l.rank&&l.quota&&(l.status==='已登記'||l.status==='候補'))?(()=>{const ah=l.rank-1,inq=Math.max(0,Math.min(l.qty,l.quota-ah));return '<div class="gray">'+(inq>=l.qty?'名額內・排第 '+l.rank+' 位（名額 '+l.quota+'）':(inq<=0?'<b style="color:var(--r)">候補第 '+(ah-l.quota+1)+' 位</b>（名額 '+l.quota+' 已滿）':'名額內 '+inq+' 個、<b style="color:var(--r)">候補 '+(l.qty-inq)+' 個</b>'))+'</div>'})():'';
       const mins=Number(r.settings['後悔期分鐘']||10),left=Math.ceil((l.ts+mins*60000-Date.now())/60000);
       const cancel=(l.status==='已登記'&&left>0)?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px" onclick="cancelL(\''+l.lid+'\',0)">取消（剩 '+left+' 分）</button>':((l.status==='已登記'||l.status==='候補')?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px" onclick="cancelL(\''+l.lid+'\',1)">申請取消</button>':'');
-      return '<div class="ol"><div><div class="nm" style="font-size:14px">'+l.name+' ×'+l.qty+'</div><div class="gray">'+l.time+(l.note?'　備註：'+l.note:'')+'</div>'+rank+'</div><div style="text-align:right"><span class="st '+(cls[l.status]||'d')+'">'+(l.status==='部分買到'?'部分買到 '+l.alloc+'/'+l.qty:l.status)+'</span><div class="gray">'+(l.price===null?'價格上船確認':nt(lineAmt(l.price,l.mode,l.qty)))+'</div>'+cancel+'</div></div>';
+      return (i===0?CHG:'')+'<div class="ol"><div><div class="nm" style="font-size:14px">'+l.name+' ×'+l.qty+'</div><div class="gray">'+l.time+(l.note?'　備註：'+l.note:'')+'</div>'+rank+'</div><div style="text-align:right"><span class="st '+(cls[l.status]||'d')+'">'+(l.status==='部分買到'?'部分買到 '+l.alloc+'/'+l.qty:l.status)+'</span><div class="gray">'+(l.price===null?'價格上船確認':nt(lineAmt(l.price,l.mode,l.qty)))+'</div>'+cancel+'</div></div>';
     }).join('');
     if(bought)h+='<div class="tot">已買到 '+bought+' 筆<br>應付 <b>'+nt(pay)+'</b><div class="gray">賣貨便運費另計；「價格上船確認」的品項以管理員回報為準</div>'+(r.settings['賣貨便連結']?'<a class="link" href="'+r.settings['賣貨便連結']+'" target="_blank">前往賣貨便下單</a>':'')+'</div>';
     v.innerHTML='<div class="notice">狀態說明：已登記＝已收到、排隊中｜已買到｜候補＝超過名額，有補貨才買｜沒買到＝不收錢｜申請取消＝等管理員確認<br>送出後 '+(r.settings['後悔期分鐘']||10)+' 分鐘內可自行取消，超過時間請按「申請取消」；已購買的商品無法取消。</div>'+h;

@@ -238,7 +238,7 @@ main{padding:18px 16px 0;max-width:1180px;margin:0 auto}
 </div></div>
 <div class="ov" id="idov" onclick="if(event.target===this)closeId()"><div class="sheet idsheet">
   <h3>填寫下單身分</h3>
-  <div class="gray" style="margin-bottom:10px">請填<b>社群暱稱、手機號碼、Email</b>（只用於這次代購的聯絡與出貨）。之後查訂單、取消<b>只要輸入手機號碼</b>，請務必填自己的手機，<b style="color:var(--r)">打錯會查不到訂單</b>。</div>
+  <div class="gray" style="margin-bottom:10px">請填<b>社群暱稱、手機號碼、Email</b>（只用於這次代購的聯絡與出貨）。系統<b>用手機號碼認人</b>：換手機或換瀏覽器時重新填一次，手機號碼一樣就會看到同一筆訂單；<b style="color:var(--r)">打錯會查不到訂單</b>。</div>
   <div class="req"><input id="nick" class="idin" placeholder="社群暱稱（請跟 LINE 群組上的一樣）*" autocomplete="off"></div>
   <div class="req"><input id="last3" class="idin" placeholder="手機號碼（09 開頭 10 碼）*" inputmode="numeric" maxlength="12" autocomplete="tel" oninput="resetPhoneCf()"></div>
   <div class="req"><input id="email" class="idin" placeholder="Email*" type="email" autocomplete="email" oninput="checkEmailHint()"></div>
@@ -246,6 +246,7 @@ main{padding:18px 16px 0;max-width:1180px;margin:0 auto}
   <div class="pcf" id="pcf"><small>請確認手機號碼，打錯會查不到訂單</small><b id="pcfNum"></b><a onclick="editPhone()">號碼有錯，我要修改</a></div>
   <button class="go" id="whoBtn" style="width:100%;margin-top:6px" onclick="confirmIdent()">確認身分</button>
   <button class="btn2" style="width:100%;margin-top:8px" onclick="closeId()">先逛逛</button>
+  <div style="text-align:center;margin-top:10px"><a class="chgid" style="margin:0" onclick="onlyQuery()">只想查訂單，不下單 →</a></div>
 </div></div>
 <div class="toast" id="toast"></div>
 <div class="dlg" id="dlg"><div class="box"><div class="msg" id="dlgMsg"></div><div class="btns"><button class="btn2" id="dlgNo">取消</button><button class="go" id="dlgOk">確定</button></div></div></div>
@@ -288,7 +289,8 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwmS5yTJtGJjEYj7IGzroN_
     submitOrder: (nick,last3,lines,email)=>call('submit', {nick:nick,last3:last3,lines:lines,email:email}, true),
     getMyOrders: (nick,last3)=>call('orders', {nick:nick,last3:last3}, true),
     cancelLine: (nick,last3,lid)=>call('cancel', {nick:nick,last3:last3,lid:lid}, true),
-    whoIs: (phone)=>call('who', {phone:phone})
+    whoIs: (phone,nick,email)=>call('who', {phone:phone,nick:nick,email:email}),
+    registerIdent: (nick,phone,email)=>call('reg', {nick:nick,phone:phone,email:email})
   };
   function runner(){ const st={ok:()=>{},fail:()=>{}}; const r={withSuccessHandler(f){st.ok=f;return r},withFailureHandler(f){st.fail=f;return r}};
     Object.keys(map).forEach(k=>{ r[k]=(...a)=>{ map[k](...a).then(d=>st.ok(d)).catch(e=>st.fail(e)); }; }); return r; }
@@ -310,10 +312,14 @@ let idOK=false;
 function showIdent(){const id=ident();idOK=true;document.querySelectorAll('.idchip').forEach(c=>{c.textContent='📋 我的訂單';c.classList.add('ok');c.onclick=goMine});closeId()}
 function gopg(d){pg+=d;render();toListTop()}
 async function logout(){if(!(await ask('要清除這支手機存的身分資料嗎？\n下次下單或查訂單要重新填寫。','登出','先不要')))return;try{localStorage.removeItem('id')}catch(e){}['#nick','#last3','#email'].forEach(q=>$(q).value='');idOK=false;cart={};document.querySelectorAll('.idchip').forEach(c=>{c.textContent='我要下單';c.classList.remove('ok');c.onclick=openId});myTab=false;tab=CATS[0][0];render();bar();toListTop();toast('已登出')}
+function onlyQuery(){closeId();myTab=true;render();toListTop()}
 function goMine(){myTab=true;render();toListTop()}
 function openId(){$('#idov').classList.add('on');setTimeout(()=>$('#nick').focus(),50)}
 function closeId(){$('#idov').classList.remove('on')}
-function confirmIdent(){const id=ident();if(!id.nick){toast('請填社群暱稱');$('#nick').focus();return}if(!/^09\d{8}$/.test(id.phone)){toast('請填正確的手機號碼（09 開頭 10 碼）');$('#last3').focus();return}if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(id.email)){toast('請填正確的 Email');$('#email').focus();return}const sg=emailSuggest(id.email);if(sg&&emailWarned!==id.email){emailWarned=id.email;checkEmailHint();toast('Email 好像打錯了，請確認；確定沒錯再按一次');return}if(phoneOK!==id.phone){phoneOK=id.phone;$('#pcfNum').textContent=fmtPhone(id.phone);$('#pcf').classList.add('on');$('#whoBtn').textContent='號碼正確，確認身分';return}const b=$('#whoBtn');b.disabled=true;b.textContent='確認中…';const done=()=>{b.disabled=false;resetPhoneCf();const x=ident();try{localStorage.setItem('id',JSON.stringify(Object.assign(x,{ok:1})))}catch(e){}showIdent();toast('已記住，之後查訂單只要輸入手機');if(myTab)renderMine()};google.script.run.withSuccessHandler(async old=>{old=String(old||'').trim();if(old&&old.replace(/\s+/g,'')!==id.nick.replace(/\s+/g,'')&&(await ask('這支手機之前是用「'+old+'」下單。\n建議沿用同一個暱稱，方便管理員對帳。','沿用「'+old+'」','改用「'+id.nick+'」')))$('#nick').value=old;done()}).withFailureHandler(()=>done()).whoIs(id.phone)}
+function confirmIdent(){const id=ident();if(!id.nick){toast('請填社群暱稱');$('#nick').focus();return}if(!/^09\d{8}$/.test(id.phone)){toast('請填正確的手機號碼（09 開頭 10 碼）');$('#last3').focus();return}if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(id.email)){toast('請填正確的 Email');$('#email').focus();return}const sg=emailSuggest(id.email);if(sg&&emailWarned!==id.email){emailWarned=id.email;checkEmailHint();toast('Email 好像打錯了，請確認；確定沒錯再按一次');return}if(phoneOK!==id.phone){phoneOK=id.phone;$('#pcfNum').textContent=fmtPhone(id.phone);$('#pcf').classList.add('on');$('#whoBtn').textContent='號碼正確，確認身分';return}const b=$('#whoBtn');b.disabled=true;b.textContent='確認中…';const done=()=>{b.disabled=false;resetPhoneCf();const x=ident();try{localStorage.setItem('id',JSON.stringify(Object.assign(x,{ok:1})))}catch(e){}showIdent();toast('已記住身分');if(myTab)renderMine()};google.script.run.withSuccessHandler(async r=>{r=r||{};const mask=p=>'***'+String(p).slice(-3);
+    if(r.oldNick&&r.oldNick.replace(/\s+/g,'')!==id.nick.replace(/\s+/g,'')){if(await ask('這支手機之前是用「'+r.oldNick+'」下單／填寫。\n建議沿用同一個暱稱，方便管理員對帳。','沿用「'+r.oldNick+'」','改用「'+id.nick+'」'))$('#nick').value=r.oldNick}
+    else if(r.byNick||r.byEmail){const p2=r.byNick||r.byEmail;const what=r.byNick?'暱稱「'+id.nick+'」':'這個 Email';if(await ask(what+'之前是用手機 '+mask(p2)+' 填寫過。\n系統用手機號碼認人，號碼不同會被當成兩個人、訂單分開。\n是同一個人嗎？','是，改用 '+mask(p2),'不是，這是新號碼')){$('#last3').value=p2}}
+    const f=ident();google.script.run.withSuccessHandler(()=>{}).withFailureHandler(()=>{}).registerIdent(f.nick,f.phone,f.email);done()}).withFailureHandler(()=>done()).whoIs(id.phone,id.nick,id.email)}
 function editIdent(){openId()}
 function needId(){if(idOK)return false;openId();return true}
 function nz(o){['price','usd','quota','alloc','rank','taken'].forEach(k=>{if(o[k]===undefined)o[k]=(k==='taken'?0:null)});return o}

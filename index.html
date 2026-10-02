@@ -133,6 +133,51 @@ main{padding:18px 16px 0;max-width:1180px;margin:0 auto}
 .zoom .cap{position:absolute;left:0;right:0;bottom:14px;text-align:center;color:rgba(255,255,255,.75);font-size:12px}
 .qphone{display:flex;gap:8px;max-width:360px;margin:12px auto 0}.qphone input{flex:1;margin:0}
 .lead a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.dlg{position:fixed;inset:0;background:rgba(42,38,34,.45);display:none;align-items:center;justify-content:center;z-index:12;padding:24px}
+.dlg.on{display:flex}.dlg .box{background:#fff;border-radius:22px;max-width:360px;width:100%;padding:22px 20px 16px;box-shadow:0 20px 50px rgba(0,0,0,.2);animation:up .18s ease}
+.dlg .msg{font-size:15px;line-height:1.7;white-space:pre-line;margin-bottom:16px}.dlg .btns{display:flex;gap:10px}.dlg .btns button{flex:1;margin:0}
+.agree{background:var(--soft);border-radius:16px;padding:14px 16px;margin:4px 0 12px;font-size:13px;line-height:1.75}
+.agree b.t{display:block;font-size:14px;margin-bottom:4px}.agree ul{margin:0 0 8px;padding-left:18px}
+.agree label{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;cursor:pointer;border-top:1px dashed var(--line);padding-top:10px}
+.agree input{width:20px;height:20px;accent-color:var(--acc);margin:0}
+#submitBtn:disabled{opacity:.4}
+.hero h1{letter-spacing:.01em}
+.dlc b,.dlc em,.pr b,.pr small,.tag,.badge,.gray,.ol,.li,.tot,.sum,#sumA,.qty span,.pcf b{letter-spacing:-.01em;font-variant-numeric:proportional-nums}
+.badge.luck{background:var(--acc)}
+.hl{background:var(--r);color:#fff;padding:1px 6px;border-radius:6px;font-weight:900}
+.agree b.t .hl{font-size:14px;margin-left:4px}
+.hl{background:none;color:var(--r);padding:0;border-radius:0;font-weight:900}
+.card{padding:10px 10px 12px;margin-bottom:12px;border-radius:20px}
+.media{margin-bottom:8px}
+.card img,.card .ph{aspect-ratio:5/4;border-radius:14px}
+.cb{padding:0 4px 0 6px}
+.nm{font-size:16px;line-height:1.35}
+.ds{margin-top:1px;line-height:1.45}
+.pr{margin-top:4px}
+.pr b{font-size:22px;line-height:1.2}
+.pr small{margin-top:0}
+.tg{margin-top:4px}
+.slot{margin-top:8px}
+.row{padding-top:8px}
+.qty button{height:38px;width:34px}
+.add{height:40px}
+#view .sec{font-size:20px;margin:20px 2px 4px}
+.notice{margin:0 0 12px;padding:2px 12px}
+.badge{top:8px;left:8px}.badge.sold{right:8px}
+.step{padding:9px 0}
+.ds:empty{display:none}
+.tg:empty,.slot:empty{display:none}
+.pr small{line-height:1.3}
+.sel,.note{padding:9px 14px}
+.slot{margin-top:6px}
+@media (min-width:700px){#view{align-items:start;gap:14px}.ds{height:auto;display:block;overflow:visible;-webkit-line-clamp:unset}.ds:empty{display:none}.pr{min-height:0}.tg,.tg:empty{min-height:0}.tg:empty{display:none}.slot,.slot:empty{min-height:0}.slot:empty{display:none}.row{margin-top:0}}
+@media (min-width:700px){#view{align-items:stretch}.row{margin-top:auto}
+.card.hasDs .ds{display:-webkit-box;min-height:1.45em;max-height:2.9em;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.card.hasFx .pr{min-height:44px}
+.card.hasTg .tg,.card.hasTg .tg:empty{display:block;min-height:24px}
+.card.hasSlot .slot,.card.hasSlot .slot:empty{display:flex;min-height:40px}}
+.memo{display:block;width:100%;padding:11px 16px;border:1px solid var(--line);border-radius:16px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);margin:0 0 12px;resize:none;line-height:1.5}
+.memo::placeholder{color:#a79e94}
 </style>
 </head>
 <body>
@@ -144,7 +189,7 @@ main{padding:18px 16px 0;max-width:1180px;margin:0 auto}
     <div class="dls" id="dl"></div>
     <div class="steps">
       <div class="step"><span class="n">1</span><div><b>按「送出訂單」才算下單</b><small>只放進購物車不算，記得送出</small></div></div>
-      <div class="step"><span class="n">2</span><div><b>不收訂金，買到才付款</b><small>金額已含代買費；郵輪商品以船上實際標價為準</small></div></div>
+      <div class="step"><span class="n">2</span><div><b>不收訂金買到才付款，<span class="hl">嚴禁跑單</span></b><small>金額已含代買費；郵輪商品以船上實際標價為準</small></div></div>
       <div class="step"><span class="n">3</span><div><b><span class="gMin">10</span> 分鐘內可自己取消</b><small>超過要按「申請取消」，已買到的無法取消</small></div></div>
     </div>
   </div>
@@ -171,22 +216,30 @@ main{padding:18px 16px 0;max-width:1180px;margin:0 auto}
   <h3>確認訂單</h3>
   <div class="cart" id="cartList"></div>
   <div class="tot" id="cartTot"></div>
-  <div class="gray" style="margin-bottom:10px">顯示的價格都已含代買費。郵輪商品以船上實際標價為準，回台依實際結帳價計算。沒買到不收費。<br><b>送出後 <span class="gMin">10</span> 分鐘內可自行取消，之後需申請，已購買的商品無法取消。</b>請確認暱稱與手機號碼正確。</div>
-  <button class="go" id="submitBtn" style="width:100%" onclick="submit()">確定送出</button>
+  <textarea class="memo" id="memo" rows="2" maxlength="80" placeholder="備註：如有任何需要可在此留言（選填）"></textarea>
+  <div class="agree"><b class="t">送出前請確認<span class="hl">嚴禁跑單</span></b><ul>
+    <li>價格含代買費，郵輪商品依<b>船上實際標價</b>結算</li>
+    <li>實際價格與網頁不同時，會在群組通知</li>
+    <li>限量品依送出順序排，額滿轉候補</li>
+    <li>送出 <span class="gMin">10</span> 分鐘內可自行取消，之後須申請；<b>已買到不能取消</b></li>
+    <li>人肉帶回，<b>外盒難免碰撞</b>，可接受再下單</li></ul>
+    <label><input type="checkbox" id="agree" onchange="$('#submitBtn').disabled=!this.checked"> 我已了解以上說明，不跑單</label></div>
+  <button class="go" id="submitBtn" style="width:100%" onclick="submit()" disabled>確定送出</button>
   <button class="btn2" style="width:100%;margin-top:8px" onclick="closeCart()">再看看</button>
 </div></div>
 <div class="ov" id="idov" onclick="if(event.target===this)closeId()"><div class="sheet idsheet">
   <h3>填寫下單身分</h3>
   <div class="gray" style="margin-bottom:10px">請填<b>社群暱稱、手機號碼、Email</b>（只用於這次代購的聯絡與出貨）。之後查訂單、取消<b>只要輸入手機號碼</b>，請務必填自己的手機，<b style="color:var(--r)">打錯會查不到訂單</b>。</div>
-  <input id="nick" class="idin" placeholder="社群暱稱（請跟 LINE 群組上的一樣）" autocomplete="off">
-  <input id="last3" class="idin" placeholder="手機號碼（09 開頭 10 碼）" inputmode="numeric" maxlength="12" autocomplete="tel" oninput="resetPhoneCf()">
-  <input id="email" class="idin" placeholder="Email" type="email" autocomplete="email" oninput="checkEmailHint()">
+  <input id="nick" class="idin" placeholder="＊社群暱稱（請跟 LINE 群組上的一樣）" autocomplete="off">
+  <input id="last3" class="idin" placeholder="＊手機號碼（09 開頭 10 碼）" inputmode="numeric" maxlength="12" autocomplete="tel" oninput="resetPhoneCf()">
+  <input id="email" class="idin" placeholder="＊Email" type="email" autocomplete="email" oninput="checkEmailHint()">
   <div class="idhint" id="emailHint"></div>
   <div class="pcf" id="pcf"><small>請確認手機號碼，打錯會查不到訂單</small><b id="pcfNum"></b><a onclick="editPhone()">號碼有錯，我要修改</a></div>
   <button class="go" id="whoBtn" style="width:100%;margin-top:6px" onclick="confirmIdent()">確認身分</button>
   <button class="btn2" style="width:100%;margin-top:8px" onclick="closeId()">先逛逛</button>
 </div></div>
 <div class="toast" id="toast"></div>
+<div class="dlg" id="dlg"><div class="box"><div class="msg" id="dlgMsg"></div><div class="btns"><button class="btn2" id="dlgNo">取消</button><button class="go" id="dlgOk">確定</button></div></div></div>
 <div class="zoom" id="zoom" onclick="this.classList.remove('on')"><img id="zoomImg" alt=""><div class="cap">圖片僅供參考，以船上實際商品為準</div></div>
 
 <script>
@@ -234,7 +287,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwmS5yTJtGJjEYj7IGzroN_
 })();
 </script>
 <script>
-const CATS=[['OBG','OBG 房間禮品'],['一口價','限量商品・爆米花水壺'],['一般','郵輪商品']];
+const CATS=[['OBG','OBG 房間禮品'],['一口價','限量商品・爆米花水壺'],['一般','郵輪商品'],['新加坡','新加坡必買']];
 const SUBTXT={'水壺／爆米花桶':'水壺／爆米花桶'};
 const CATMAP={'限量':'一口價','船上新增':'一般'};const catOf=it=>CATMAP[it.cat]||it.cat;
 let DATA=null, cart={}, tab='OBG', myTab=false;
@@ -248,7 +301,7 @@ let idOK=false;
 function showIdent(){const id=ident();idOK=true;document.querySelectorAll('.idchip').forEach(c=>{c.textContent='✓ '+id.nick+'｜***'+id.last3;c.classList.add('ok')});closeId()}
 function openId(){$('#idov').classList.add('on');setTimeout(()=>$('#nick').focus(),50)}
 function closeId(){$('#idov').classList.remove('on')}
-function confirmIdent(){const id=ident();if(!id.nick){toast('請填社群暱稱');$('#nick').focus();return}if(!/^09\d{8}$/.test(id.phone)){toast('請填正確的手機號碼（09 開頭 10 碼）');$('#last3').focus();return}if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(id.email)){toast('請填正確的 Email');$('#email').focus();return}const sg=emailSuggest(id.email);if(sg&&emailWarned!==id.email){emailWarned=id.email;checkEmailHint();toast('Email 好像打錯了，請確認；確定沒錯再按一次');return}if(phoneOK!==id.phone){phoneOK=id.phone;$('#pcfNum').textContent=fmtPhone(id.phone);$('#pcf').classList.add('on');$('#whoBtn').textContent='號碼正確，確認身分';return}const b=$('#whoBtn');b.disabled=true;b.textContent='確認中…';const done=()=>{b.disabled=false;resetPhoneCf();const x=ident();try{localStorage.setItem('id',JSON.stringify(Object.assign(x,{ok:1})))}catch(e){}showIdent();toast('已記住，之後查訂單只要輸入手機');if(myTab)renderMine()};google.script.run.withSuccessHandler(old=>{old=String(old||'').trim();if(old&&old.replace(/\s+/g,'')!==id.nick.replace(/\s+/g,'')&&confirm('這支手機之前是用「'+old+'」下單。\n\n按「確定」沿用「'+old+'」（建議，方便管理員對帳）\n按「取消」改用「'+id.nick+'」'))$('#nick').value=old;done()}).withFailureHandler(()=>done()).whoIs(id.phone)}
+function confirmIdent(){const id=ident();if(!id.nick){toast('請填社群暱稱');$('#nick').focus();return}if(!/^09\d{8}$/.test(id.phone)){toast('請填正確的手機號碼（09 開頭 10 碼）');$('#last3').focus();return}if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(id.email)){toast('請填正確的 Email');$('#email').focus();return}const sg=emailSuggest(id.email);if(sg&&emailWarned!==id.email){emailWarned=id.email;checkEmailHint();toast('Email 好像打錯了，請確認；確定沒錯再按一次');return}if(phoneOK!==id.phone){phoneOK=id.phone;$('#pcfNum').textContent=fmtPhone(id.phone);$('#pcf').classList.add('on');$('#whoBtn').textContent='號碼正確，確認身分';return}const b=$('#whoBtn');b.disabled=true;b.textContent='確認中…';const done=()=>{b.disabled=false;resetPhoneCf();const x=ident();try{localStorage.setItem('id',JSON.stringify(Object.assign(x,{ok:1})))}catch(e){}showIdent();toast('已記住，之後查訂單只要輸入手機');if(myTab)renderMine()};google.script.run.withSuccessHandler(async old=>{old=String(old||'').trim();if(old&&old.replace(/\s+/g,'')!==id.nick.replace(/\s+/g,'')&&(await ask('這支手機之前是用「'+old+'」下單。\n建議沿用同一個暱稱，方便管理員對帳。','沿用「'+old+'」','改用「'+id.nick+'」')))$('#nick').value=old;done()}).withFailureHandler(()=>done()).whoIs(id.phone)}
 function editIdent(){openId()}
 function needId(){if(idOK)return false;openId();return true}
 function nz(o){['price','usd','quota','alloc','rank','taken'].forEach(k=>{if(o[k]===undefined)o[k]=(k==='taken'?0:null)});return o}
@@ -283,11 +336,15 @@ let phoneOK='';
 function fmtPhone(p){return p.slice(0,4)+'-'+p.slice(4,7)+'-'+p.slice(7)}
 function resetPhoneCf(){phoneOK='';$('#pcf').classList.remove('on');$('#whoBtn').textContent='確認身分'}
 function editPhone(){resetPhoneCf();$('#last3').focus()}
+
+function ask(msg,ok,no){return new Promise(res=>{const d=$('#dlg');$('#dlgMsg').textContent=msg;$('#dlgOk').textContent=ok||'確定';$('#dlgNo').textContent=no||'取消';$('#dlgNo').style.display=no===null?'none':'';
+  $('#dlgOk').onclick=()=>{d.classList.remove('on');res(true)};$('#dlgNo').onclick=()=>{d.classList.remove('on');res(false)};d.classList.add('on')})}
+const LUCK=new Set(['O06','O07','O08']);
 function render(){
   const s=DATA.settings;
   (()=>{const t=String(s['團名']||'探險號代購').trim(),i=t.indexOf(' ');$('#title').innerHTML=i>0?esc(t.slice(0,i))+' <span style="white-space:nowrap">'+esc(t.slice(i+1))+'</span>':esc(t)})();
   $('#dl').innerHTML=[['OBG 房間禮品',s['OBG截止']],['其他商品',s['連線截止']]].map(([t,iso])=>{const d=new Date(iso),ms=d-new Date(),days=Math.ceil(ms/86400000);const w='日一二三四五六'[new Date(d.getTime()+8*3600e3).getUTCDay()];const tt=fmtDl(iso).replace(' ','（'+w+'）');const cd=ms<=0?'<em class="done">已截止</em>':(days<=1?'<em>最後 '+Math.max(1,Math.ceil(ms/3600000))+' 小時</em>':'<em>還有 '+days+' 天</em>');return '<div class="dlc"><span>'+t+' 收單截止</span><b>'+tt+'</b>'+cd+'</div>'}).join('');$('#brand').textContent=s['團名']||'探險號代購';
-  if(s['公告']){$('#notice').style.display='block';$('#notice').textContent=s['公告']}
+  
   document.querySelectorAll('.gObg').forEach(e=>e.textContent=fmtDl(s['OBG截止']));document.querySelectorAll('.gLive').forEach(e=>e.textContent=fmtDl(s['連線截止']));document.querySelectorAll('.gMin').forEach(e=>e.textContent=s['後悔期分鐘']||10);
   const tabs=$('#tabs');tabs.innerHTML='';
   CATS.forEach(([k,l])=>{const b=document.createElement('button');b.textContent=l;b.className=(!myTab&&tab===k)?'on':'';b.onclick=()=>{myTab=false;tab=k;render();toListTop()};tabs.appendChild(b)});
@@ -300,7 +357,7 @@ function render(){
   if(subs.indexOf(sub)<0)sub='全部';
   const items=all.filter(i=>sub==='全部'||i.sub===sub);
   if(!items.length){v.innerHTML='<div class="empty">這區還沒有商品</div>'}
-  const TABNOTE={OBG:'OBG 為郵輪官方房間禮品，收單至 '+fmtDl(DATA.settings['OBG截止'])+'，由管理員出發前統一預訂。金額已含代買費。','一口價':'一口價已含代買費，依送出順序排名額。水壺／爆米花桶＝船上結帳價×33＋500（不另收代買費），價格上船確認。'};
+  const TABNOTE={'新加坡':'新加坡機場／超市購買，全部一口價，已含代買費。',OBG:'OBG 為郵輪官方房間禮品，收單至 '+fmtDl(DATA.settings['OBG截止'])+'，由管理員出發前統一預訂。金額已含代買費。','一口價':'一口價已含代買費，依送出順序排名額。水壺／爆米花桶＝船上結帳價×33＋500（不另收代買費），價格上船確認，請留意船上時常缺貨。'};
   if(TABNOTE[tab]){const n=document.createElement('div');n.className='notice';n.textContent=TABNOTE[tab];v.appendChild(n)}
   if(tab==='一般'){const n=document.createElement('div');n.className='notice';n.textContent='船上近期多項商品漲價，價格以船上實際標價為準，回台依實際結帳價結算。';v.appendChild(n)}
   if(subs.length){const st=$('#subtabs');st.style.display='flex';['全部'].concat(subs).forEach(s=>{const b=document.createElement('button');b.className=s===sub?'on':'';b.innerHTML=esc(s)+'<i>'+(s==='全部'?all.length:all.filter(i=>i.sub===s).length)+'</i>';b.onclick=()=>{sub=s;render();toListTop()};st.appendChild(b)})}
@@ -309,7 +366,7 @@ function render(){
     if(showHdr&&it.sub&&it.sub!==lastSub){lastSub=it.sub;const h=document.createElement('div');h.className='sec';h.innerHTML=esc(SUBTXT[it.sub]||it.sub)+'<span>'+items.filter(x=>x.sub===it.sub).length+' 件</span>';v.appendChild(h)}
     const ks=kids(it);
     const soldAll=it.status==='售完'||(ks.length>0&&ks.every(k=>k.status==='售完'));
-    const c=document.createElement('div');c.className='card'+(soldAll?' soldout':'');
+    const c=document.createElement('div');c.className='card'+(soldAll?' soldout':'');c.dataset.sub=it.sub||'';
     const isClosed=closed(it);
     const img0=it.img||((ks.find(k=>k.img)||{}).img)||'';
     let pick='';
@@ -318,13 +375,15 @@ function render(){
         ks.map(k=>'<option value="'+k.id+'"'+(k.status==='售完'?' disabled':'')+'>'+esc(k.opt)+'｜'+(k.price!==null?nt(dp(k)):'價格上船確認')+(k.status==='售完'?'（缺貨）':'')+'</option>').join('')+'</select>'+
         '<input class="note" id="x-'+it.id+'" placeholder="請填想要的款式／尺寸" style="display:none;flex:1 1 100%">';
     }
-    c.innerHTML='<div class="media">'+imgHtml(it.id,img0)+(it.quota?'<span class="badge">限量 '+it.quota+'</span>':'')+(soldAll?'<span class="badge sold">船上缺貨</span>':'')+'</div>'+
+    c.innerHTML='<div class="media">'+imgHtml(it.id,img0,ks.length?ks[0].id:null)+((LUCK.has(it.id)||/碰運氣/.test(it.name+(it.desc||'')))?'<span class="badge luck">碰運氣・不保證</span>':(it.quota?'<span class="badge">限量 '+it.quota+'</span>':''))+(soldAll?'<span class="badge sold">船上缺貨</span>':'')+'</div>'+
       '<div class="cb"><div class="nm">'+esc(it.name)+'</div><div class="ds">'+esc(it.desc||'')+'</div><div class="pr" id="p-'+it.id+'">'+priceHtml(it,ks)+'</div><div class="tg" id="t-'+it.id+'">'+tagsHtml(it,ks,null)+'</div>'+
       '<div class="slot">'+(pick||((/備註/.test(it.desc||'')||needNote(it,ks))?'<input class="note" id="n-'+it.id+'" placeholder="'+(needNote(it,ks)?'請填想要的品項':'備註（款式／尺寸／角色）')+'">':''))+'</div><div class="row"><div class="qty"><button onclick="q(\''+it.id+'\',-1)">−</button><span id="q-'+it.id+'">1</span><button onclick="q(\''+it.id+'\',1)">＋</button></div>'+
       '<button class="add" id="a-'+it.id+'" '+((isClosed||soldAll)?'disabled':'')+' onclick="add(\''+it.id+'\')">'+(isClosed?'已截止':(soldAll?'缺貨':(isFull(it,ks,null)?'加入候補':'加入')))+'</button>'+
       '</div></div>';
     v.appendChild(c);
   });
+  (()=>{const cs=[...v.querySelectorAll('.card')],g={};cs.forEach(c=>{(g[c.dataset.sub]=g[c.dataset.sub]||[]).push(c)});
+    Object.values(g).forEach(arr=>{const has={hasDs:'.ds:not(:empty)',hasFx:'.pr small',hasTg:'.tg:not(:empty)',hasSlot:'.slot:not(:empty)'};const cls=Object.keys(has).filter(k=>arr.some(c=>c.querySelector(has[k])));arr.forEach(c=>c.classList.add(...cls))})})();
   bar();
   loadThumbs();
 }
@@ -336,7 +395,7 @@ function lineAmt(price,mode,q){return (mode==='一般'?price+fee(price):price)*q
 function needNote(it,ks){return !ks.length&&/^其他/.test(it.name||'')}
 function isOther(k){return /-9$/.test(k.id)||/^其他/.test(k.opt||'')}
 function fx(k){                                                               // 小字公式（不寫中文）
-  const sg=k.tax==='SGD',cur=sg?'SGD':'USD',rate=sg?26:33,t18=(k.tax==='＋18%'&&k.price!==null)?' × 1.18':'';
+  const sg=k.tax==='SGD',cur=sg?'SGD':'USD',rate=sg?26:33,t18='';
   if(k.mode==='加500')return cur+' × '+rate+' + 500';
   if(k.mode==='一口價')return '';
   return cur+(k.usd!==null&&k.price!==null?' '+k.usd:'')+t18+' × '+rate+' + 10%';
@@ -363,26 +422,27 @@ function tagsHtml(it,ks,k){
   if(k&&k.quota)tags+='<span class="tag'+(k.taken>=k.quota?' warn':'')+'">此款名額 '+k.quota+'・已登記 '+k.taken+(k.taken>=k.quota?'（候補）':'')+'</span>';
   else if(it.quota)tags+='<span class="tag'+(tk>=it.quota?' warn':'')+'">名額 '+it.quota+'・已登記 '+tk+(tk>=it.quota?'（候補）':'')+'</span>';
   const tax=(k&&k.tax)||it.tax||(ks[0]&&ks[0].tax)||'';
-  if(tax==='＋18%'||tax==='含18%')tags+='<span class="tag">含酒吧稅 18%</span>';
   if(it.status==='售完'||(k&&k.status==='售完'))tags+='<span class="tag warn">船上缺貨</span>';
   return tags;
 }
-function imgHtml(pid,src){
+function ghSrc(pid,kid){if(kid&&GH.has(kid))return GHB+kid+'.jpg';if(GH.has(pid))return GHB+pid+'.jpg';return ''}
+function imgHtml(pid,src,kid){
+  const g=ghSrc(pid,kid);if(g)src=g;
   if(!src)return '<div class="ph" id="im-'+pid+'">🛍️</div>';
   if(/^drive:/.test(src))return '<img id="im-'+pid+'" data-drive="'+src.slice(6)+'" alt="" decoding="async" onclick="zoomImg(this)">';
   return '<img id="im-'+pid+'" src="'+src+'" loading="lazy" onclick="zoomImg(this)">';
 }
-function setImg(pid,src){const el=$('#im-'+pid);if(!el||!src||el.getAttribute('data-src')===src)return;
-  const w=document.createElement('div');w.innerHTML=imgHtml(pid,src);const n=w.firstChild;n.setAttribute('data-src',src);el.replaceWith(n);loadThumbs()}
+function setImg(pid,src,kid){const el=$('#im-'+pid);src=ghSrc(pid,kid)||src;if(!el||!src||el.getAttribute('data-src')===src)return;
+  const w=document.createElement('div');w.innerHTML=imgHtml(pid,src,kid);const n=w.firstChild;n.setAttribute('data-src',src);el.replaceWith(n);loadThumbs()}
 function pickOpt(pid){
   const it=DATA.items.find(i=>i.id===pid),ks=kids(it),kid=ks.find(k=>k.id===$('#o-'+pid).value);
-  setImg(pid,(kid&&kid.img)||it.img||((ks.find(k=>k.img)||{}).img)||'');
+  setImg(pid,(kid&&kid.img)||it.img||((ks.find(k=>k.img)||{}).img)||'',(kid||ks[0]||{}).id);
   $('#p-'+pid).innerHTML=kid?onePrice(kid):priceHtml(it,ks);
   $('#t-'+pid).innerHTML=tagsHtml(it,ks,kid);
   $('#x-'+pid).style.display=(kid&&isOther(kid))?'block':'none';
   const b=$('#a-'+pid);if(!b.disabled)b.textContent=isFull(it,ks,kid)?'加入候補':'加入';
 }
-const GH=new Set(["10W2tGpNyodQPpossRLPMOPzmqh3O_d6J", "12HAVkT2bfOfnErEZT31tF0UrhCY6K64v", "1498gdG7Fy3G9zNqn0CnpUHjN3BeT96hW", "18F3L5FWwNZq54_U35l_lajpVOiZ2bYjz", "19bYJIu_KNj7rlQAj_HreVX3t0q2FzkSp", "1AUN223ckNa3ooPhtNc023llBWEDmyQlq", "1Bgz5GlAp-9M7abr5qkH-ttoVlHF7t_eW", "1CMNyDtkiY_zgGEX5U5qmrN-o6MXskNai", "1Dzn7aE-ITVWocbf5mZKWPQU3o6hpDaO9", "1F8HoY3CR8U9TUnSHUArzgHF3OLgi315i", "1GD83hMxLJYRiUEqdzzocKt1Xbc6KkJT4", "1GSBHkfc28rTYv4Zp07W4zrh2GIRMxDbU", "1GWxyKmZ8Fzhs5Cv1FW_OSoKDqhTdlKNZ", "1H8u0Gqp-M6iFAeqIpkmoGL6MccDeONjr", "1KCaAHGRYKM4MpvG9yvayji1P8eHBtlpZ", "1L-0cNx88ohMiSynwlykcEs-pO7iHG9ea", "1OIii-MQIL7HeqyG7KjzllCikALFGdeba", "1OVGqVKNwuPueMoHL8Cqao_K_527qtL-m", "1OYy_TeIOZ1HkyMHvL6Gi_9aZGNl5wWG4", "1QXBxUCZmWccVUiFTYQBAIscjmRob9Fed", "1QsMLuGQ6G0woDiNkqHDiTaaHiAJ5mluV", "1R6ZmYX67pURJ1i6LPF3xjHdGLIIj1csj", "1TVK9JxtzhfCj2TbjZYSPxP6KVyjJem86", "1U8UswFs_7mx6Z2crflBaM1X4s4y-4Zkc", "1UBsEDFbNWJu_LhupzjR6DglJMU3TqkZB", "1WErFc3yCNP9KiulYJSjdW6AZmxw-A455", "1WvKTQJoKAenqlC2Lz6qiOq7JMNPONfz4", "1Xc3sE728tYH8Ap90HwnUQDvEwROikQ2B", "1YVqDy0aRInEFEkZWGkxrdoYWNw67Zpp-", "1ZmjSX22mIV2hS_iWXVE7BZqXJTKSJMEs", "1_xLdfRJzdzAAR7ptV8awnqQUGPPxFFdr", "1a96VsksaTkZ1LpBMmDpW7BhfXr2BC2jk", "1aRuumXdqzPySoix_Yawuqg_pdEYumjL-", "1ae_n3gAL7MRmUiNr_8jeGSzKTCLiOzzJ", "1briTzb8q2PWpgiSTmb_6V83Z8--26ndq", "1d0C9IQ1tTVkjEmGpRHRPVJVb-Bl28lAQ", "1e6kr4eedRLzDR4sUGrqVT8XZjQah8sCz", "1fTHZcCSDlDDz1LRqJz30Zzb7McPtfuzR", "1h8RCLYe7n4kAbJIPBREXZX3ZFafLphfL", "1hA3zNknhEv9OGJi8rQ8rtO1LMmcaNX-s", "1hG85RbA6MYg2DfRrH72U69bK8obGayEz", "1hJf7oLfRfZ4qcUXvtJm8jXhdPAfX-54R", "1iP38Xtd0erngeAfJ840tm3-MAw8IzutP", "1iXsq95A6YZbIsYVeKTMhcUvnz962na3m", "1ibdxHsTp-6KVK_v_LMTci3908xeJO6D2", "1j2ff88cV1He7VE4sKQYAGv53HxQEBoo9", "1jZa8LTqACGHK3_f9sWaIPJ2QlWt6TwXp", "1k-b0jhD91eFxUwQMt_jXgszaK-xBbJNN", "1klNTxItjbhDRe_h9g1YSC97NkyeS45Y5", "1lX33DAHuXR3vhLp7dEucQbJ3ZVYVRkxU", "1lYPyRQwsqacVxW8MifkGqQfPGEJFg_m7", "1mAZ7QAiPv13F_B772kL6QneZkGu8tbub", "1mJIntEFkC62Iv6isJl4ONFQhFCU0WmMM", "1mZEr2OAGWqEq5x5F5-Mo9s5eTFtE8Y2v", "1npGDpt160ZqZgFzJMQ3pOnX5IX7BZgae", "1ohX61M9MS7wvc-UOpKnBrRkpWJSSGYT3", "1pk_xyrFfZZnDqI_e68GrLET0opsJrMTs", "1qVdt4M5l4-Cy4WgaC00VdxQXQeP7MmHe", "1rHeYsE4xRYbFRWkFwYZzH3tUx8C-HTyA", "1tnzBh-CZOOa-rpOal_VRbFY5wR5KZNc_", "1uH1yZvGQc-tCQcR-YNVGSA5BxEnzrKI0", "1w8TvtD9CpuOOgrAZEkXAmqxBt3V5zRgc", "1wiEkug90vADVZGzMJj7JQalgC3qNi1id", "1xmD9ZIB753nrDhZ8cfXonJM7unghMsBD", "1zDYnTNpcapZwCKTxzelZLm49j4YdKMhx", "1zTusV3nVdGxOitoOgTJOFMSKmRBuWtqS"]),GHB='img/';
+const GH=new Set(["G01-1", "G01-5", "G01-7", "G01-8", "G05-1", "G05-2", "G05-3", "G07-1", "G07-2", "G07-3", "G09", "G10", "G11", "G12", "G14", "G16", "G17", "G18", "G19", "G20", "G21", "G23-1", "G23-2", "G24", "G26", "G28", "G34", "G35", "G36", "G37", "G38", "G39", "G40", "G41", "G42", "G43", "G44", "G45", "G47", "G48", "G49-1", "G49-2", "G50", "G51", "G52", "G53", "G54", "G55", "G56", "G58", "G60", "G61", "G62", "G63", "G64", "H01", "H02", "H03", "H05", "H07", "H08", "H09", "H10", "L01", "L02", "L03", "L04", "L05", "O01", "O02", "O03", "O04", "O05", "O06", "O07", "O08", "P01", "P02", "P03", "S01"]),GHB='img/';
 const TH={},TQ=[],TW={};let TA=0;
 function thumbFail(im){im.onerror=null;im.removeAttribute('src');im.setAttribute('data-gh','0');loadThumbs()}
 function loadThumbs(){document.querySelectorAll('img[data-drive]').forEach(im=>{const id=im.getAttribute('data-drive');if(im.getAttribute('src'))return;if(TH[id]){im.src=TH[id];return}
@@ -414,9 +474,10 @@ function del(k){delete cart[k];openCart();bar()}
 function submit(){
   const id=ident();if(!idOK||!id.nick||id.phone.length<10){closeCart();needId();return}
   const lines=Object.values(cart).map(l=>({id:l.id,qty:l.qty,note:l.note}));if(!lines.length)return;
+  const memo=($('#memo').value||'').trim().replace(/\s+/g,' ');if(memo)lines[0].note=['整單：'+memo,lines[0].note].filter(Boolean).join('；');
   const b=$('#submitBtn');b.disabled=true;b.textContent='送出中…';
-  google.script.run.withSuccessHandler(r=>{b.disabled=false;b.textContent='確定送出';cart={};closeCart();bar();toast('已送出，訂單 '+r.orderId);myTab=true;render();load()})
-    .withFailureHandler(e=>{b.disabled=false;b.textContent='確定送出';toast(e.message)}).submitOrder(id.nick,id.phone,lines,id.email);
+  google.script.run.withSuccessHandler(r=>{b.disabled=false;b.textContent='確定送出';cart={};closeCart();bar();toast('已送出，訂單 '+r.orderId);$('#agree').checked=false;$('#submitBtn').disabled=true;$('#memo').value='';myTab=true;render();load()})
+    .withFailureHandler(e=>{b.disabled=false;b.textContent='確定送出';ask(e.message,'知道了',null)}).submitOrder(id.nick,id.phone,lines,id.email);
 }
 function queryPhone(){const ph=($('#qphone').value||'').replace(/\D/g,'');if(!/^09\d{8}$/.test(ph)){toast('請填正確的手機號碼（09 開頭 10 碼）');return}$('#last3').value=ph;renderMine()}
 function renderMine(){
@@ -430,7 +491,7 @@ function renderMine(){
     let pay=0,bought=0;
     let h=r.lines.map(l=>{
       const gq=(l.status==='已買到'||l.status==='部分買到')?(l.alloc!==null?l.alloc:l.qty):0;if(gq>0){bought++;if(l.price!==null)pay+=lineAmt(l.price,l.mode,gq)}
-      const rank=(l.rank&&(l.status==='已登記'||l.status==='候補'))?'<div class="gray">'+(l.rank<=l.quota?'排第 '+l.rank+' 位（名額 '+l.quota+'）':'候補第 '+(l.rank-l.quota)+' 位')+'</div>':'';
+      const rank=(l.rank&&l.quota&&(l.status==='已登記'||l.status==='候補'))?(()=>{const ah=l.rank-1,inq=Math.max(0,Math.min(l.qty,l.quota-ah));return '<div class="gray">'+(inq>=l.qty?'名額內・排第 '+l.rank+' 位（名額 '+l.quota+'）':(inq<=0?'<b style="color:var(--r)">候補第 '+(ah-l.quota+1)+' 位</b>（名額 '+l.quota+' 已滿）':'名額內 '+inq+' 個、<b style="color:var(--r)">候補 '+(l.qty-inq)+' 個</b>'))+'</div>'})():'';
       const mins=Number(r.settings['後悔期分鐘']||10),left=Math.ceil((l.ts+mins*60000-Date.now())/60000);
       const cancel=(l.status==='已登記'&&left>0)?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px" onclick="cancelL(\''+l.lid+'\',0)">取消（剩 '+left+' 分）</button>':((l.status==='已登記'||l.status==='候補')?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px" onclick="cancelL(\''+l.lid+'\',1)">申請取消</button>':'');
       return '<div class="ol"><div><div class="nm" style="font-size:14px">'+l.name+' ×'+l.qty+'</div><div class="gray">'+l.time+(l.note?'　備註：'+l.note:'')+'</div>'+rank+'</div><div style="text-align:right"><span class="st '+(cls[l.status]||'d')+'">'+(l.status==='部分買到'?'部分買到 '+l.alloc+'/'+l.qty:l.status)+'</span><div class="gray">'+(l.price===null?'價格上船確認':nt(lineAmt(l.price,l.mode,l.qty)))+'</div>'+cancel+'</div></div>';
@@ -439,7 +500,7 @@ function renderMine(){
     v.innerHTML='<div class="notice">狀態說明：已登記＝已收到、排隊中｜已買到｜候補＝超過名額，有補貨才買｜沒買到＝不收錢｜申請取消＝等管理員確認<br>送出後 '+(r.settings['後悔期分鐘']||10)+' 分鐘內可自行取消，超過時間請按「申請取消」；已購買的商品無法取消。</div>'+h;
   }).withFailureHandler(e=>{v.innerHTML='<div class="empty">'+e.message+'</div>'}).getMyOrders(id.nick,id.phone);
 }
-function cancelL(lid,req){if(!confirm(req?'確定要申請取消這筆？\n管理員確認後才會取消；如果已經買到，將無法取消。':'確定取消這筆？'))return;const id=ident();google.script.run.withSuccessHandler(x=>{toast(x==='requested'?'已送出取消申請，請等管理員確認':'已取消');renderMine();load()}).withFailureHandler(e=>toast(e.message)).cancelLine(id.nick,id.phone,lid)}
+async function cancelL(lid,req){if(!(await ask(req?'確定要申請取消這筆？\n管理員確認後才會取消；如果已經買到，將無法取消。':'確定取消這筆？',req?'申請取消':'確定取消','先不要')))return;const id=ident();google.script.run.withSuccessHandler(x=>{toast(x==='requested'?'已送出取消申請，請等管理員確認':'已取消');renderMine();load()}).withFailureHandler(e=>toast(e.message)).cancelLine(id.nick,id.phone,lid)}
 loadIdent();load();
 window.addEventListener('scroll',()=>{$('#nav').classList.toggle('scrolled',$('#nav').getBoundingClientRect().top<=0&&window.scrollY>40)},{passive:true});
 </script>

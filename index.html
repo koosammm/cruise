@@ -186,6 +186,7 @@ main{padding:18px 16px 0;max-width:1180px;margin:0 auto}
 .pager{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 0 10px}
 .pager button{background:#fff;color:var(--ink);border:1.5px solid var(--line);border-radius:999px;padding:9px 18px;font-size:14px;font-weight:700;font-family:inherit}
 .pager button[disabled]{opacity:.35}.pager span{font-size:13px;color:var(--mut)}
+.req{margin-bottom:10px}.req .idin{margin-bottom:0}
 </style>
 </head>
 <body>
@@ -238,9 +239,9 @@ main{padding:18px 16px 0;max-width:1180px;margin:0 auto}
 <div class="ov" id="idov" onclick="if(event.target===this)closeId()"><div class="sheet idsheet">
   <h3>填寫下單身分</h3>
   <div class="gray" style="margin-bottom:10px">請填<b>社群暱稱、手機號碼、Email</b>（只用於這次代購的聯絡與出貨）。之後查訂單、取消<b>只要輸入手機號碼</b>，請務必填自己的手機，<b style="color:var(--r)">打錯會查不到訂單</b>。</div>
-  <input id="nick" class="idin" placeholder="＊社群暱稱（請跟 LINE 群組上的一樣）" autocomplete="off">
-  <input id="last3" class="idin" placeholder="＊手機號碼（09 開頭 10 碼）" inputmode="numeric" maxlength="12" autocomplete="tel" oninput="resetPhoneCf()">
-  <input id="email" class="idin" placeholder="＊Email" type="email" autocomplete="email" oninput="checkEmailHint()">
+  <div class="req"><input id="nick" class="idin" placeholder="社群暱稱（請跟 LINE 群組上的一樣）*" autocomplete="off"></div>
+  <div class="req"><input id="last3" class="idin" placeholder="手機號碼（09 開頭 10 碼）*" inputmode="numeric" maxlength="12" autocomplete="tel" oninput="resetPhoneCf()"></div>
+  <div class="req"><input id="email" class="idin" placeholder="Email*" type="email" autocomplete="email" oninput="checkEmailHint()"></div>
   <div class="idhint" id="emailHint"></div>
   <div class="pcf" id="pcf"><small>請確認手機號碼，打錯會查不到訂單</small><b id="pcfNum"></b><a onclick="editPhone()">號碼有錯，我要修改</a></div>
   <button class="go" id="whoBtn" style="width:100%;margin-top:6px" onclick="confirmIdent()">確認身分</button>
@@ -308,6 +309,7 @@ function loadIdent(){try{const o=JSON.parse(localStorage.getItem('id')||'{}');if
 let idOK=false;
 function showIdent(){const id=ident();idOK=true;document.querySelectorAll('.idchip').forEach(c=>{c.textContent='📋 我的訂單';c.classList.add('ok');c.onclick=goMine});closeId()}
 function gopg(d){pg+=d;render();toListTop()}
+async function logout(){if(!(await ask('要清除這支手機存的身分資料嗎？\n下次下單或查訂單要重新填寫。','登出','先不要')))return;try{localStorage.removeItem('id')}catch(e){}['#nick','#last3','#email'].forEach(q=>$(q).value='');idOK=false;cart={};document.querySelectorAll('.idchip').forEach(c=>{c.textContent='我要下單';c.classList.remove('ok');c.onclick=openId});myTab=false;tab=CATS[0][0];render();bar();toListTop();toast('已登出')}
 function goMine(){myTab=true;render();toListTop()}
 function openId(){$('#idov').classList.add('on');setTimeout(()=>$('#nick').focus(),50)}
 function closeId(){$('#idov').classList.remove('on')}
@@ -456,7 +458,7 @@ function pickOpt(pid){
   $('#x-'+pid).style.display=(kid&&isOther(kid))?'block':'none';
   const b=$('#a-'+pid);if(!b.disabled)b.textContent=isFull(it,ks,kid)?'加入候補':'加入';
 }
-const GH=new Set(["G01-1", "G01-5", "G01-7", "G01-8", "G05-1", "G05-2", "G05-3", "G07-1", "G07-2", "G07-3", "G09", "G10", "G11", "G12", "G14", "G16", "G17", "G18", "G19", "G20", "G21", "G23-1", "G23-2", "G24", "G26", "G28", "G34", "G35", "G36", "G37", "G38", "G39", "G40", "G41", "G42", "G43", "G44", "G45", "G47", "G48", "G49-1", "G49-2", "G50", "G51", "G52", "G53", "G54", "G55", "G56", "G58", "G60", "G61", "G62", "G63", "G64", "H01", "H02", "H03", "H05", "H07", "H08", "H09", "H10", "L01", "L02", "L03", "L04", "L05", "O01", "O02", "O03", "O04", "O05", "O06", "O07", "O08", "P01", "P02", "P03", "S01"]),GHB='img/';
+const GH=new Set(["G01-1", "G01-5", "G01-7", "G01-8", "G05-1", "G05-2", "G05-3", "G07-1", "G07-2", "G07-3", "G09", "G10", "G11", "G12", "G14", "G16", "G17", "G18", "G19", "G20-1", "G20-2", "G20-3", "G21", "G23-1", "G23-2", "G24", "G26", "G28", "G34", "G35", "G36", "G37", "G38", "G39", "G40", "G41", "G42", "G43", "G44", "G45", "G47", "G48", "G49-1", "G49-2", "G50", "G51", "G52", "G53", "G54", "G55", "G56", "G58", "G60", "G61", "G62", "G63", "G64", "G65-1", "G65-2", "G65-3", "H01", "H02", "H03", "H05", "H07", "H08", "H09", "H10", "L01", "L02", "L03", "L04", "L05", "O01", "O02", "O03", "O04", "O05", "O06", "O07", "O08", "P01", "P02", "P03", "S01"]),GHB='img/';
 const TH={},TQ=[],TW={};let TA=0;
 function thumbFail(im){im.onerror=null;im.removeAttribute('src');im.setAttribute('data-gh','0');loadThumbs()}
 function loadThumbs(){document.querySelectorAll('img[data-drive]').forEach(im=>{const id=im.getAttribute('data-drive');if(im.getAttribute('src'))return;if(TH[id]){im.src=TH[id];return}
@@ -500,7 +502,7 @@ function renderMine(){
   v.innerHTML='<div class="empty">載入中…</div>';
   google.script.run.withSuccessHandler(r=>{
     r.lines.forEach(nz);
-    const CHG='<button class="chgid" onclick="openId()">'+esc(id.nick)+'｜***'+id.last3+'　更改身分資料</button>';
+    const CHG='<button class="chgid" onclick="logout()">'+esc(id.nick)+'｜***'+id.last3+'　換人下單</button>';
     if(!r.lines.length){v.innerHTML=CHG+'<div class="empty">還沒有訂單</div>';return}
     const cls={'已登記':'a','已買到':'b','部分買到':'b','候補':'e','沒買到':'c','申請取消':'a','已取消':'d'};
     let pay=0,bought=0;

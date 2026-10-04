@@ -503,8 +503,10 @@ function add(pid){
   const n=$('#n-'+pid);const note=[other,n?n.value.trim():''].filter(Boolean).join('；');
   const name=it.name+(t.opt?'｜'+t.opt:'');const key=t.id+(other?'|'+other:'');
   const prev=cart[key];
-  cart[key]={key:key,id:t.id,name:name,qty:Q[pid]||1,price:t.price,mode:t.mode,note:note||(prev?prev.note:'')};
-  toast('已加入：'+name);bar()}
+  const want=(prev?prev.qty:0)+(Q[pid]||1),qty=Math.min(20,want);
+  cart[key]={key:key,id:t.id,name:name,qty:qty,price:t.price,mode:t.mode,note:note||(prev?prev.note:'')};
+  Q[pid]=1;const qe=$('#q-'+pid);if(qe)qe.textContent='1';
+  toast(want>20?'每項最多 20 個，購物車已有 20 個：'+name:(prev?'已加入，購物車共 '+qty+' 個：'+name:'已加入：'+name));bar()}
 function est(){let total=0,n=0,unk=0;Object.values(cart).forEach(l=>{n+=l.qty;if(l.price===null){unk++;return}total+=lineAmt(l.price,l.mode,l.qty)});return{n,total,unk}}
 function bar(){const e=est();$('#bar').style.display=e.n?'block':'none';$('#sumN').textContent=e.n+' 件';$('#sumA').textContent=nt(e.total);$('#sumN').textContent=e.n+' 件・預估金額'}
 function openCart(){const e=est();const l=$('#cartList');l.innerHTML=Object.values(cart).map(x=>'<div class="li"><div>'+thumbHtml(x.id)+'<div>'+x.name+' ×'+x.qty+(x.note?'<div class="gray">備註：'+x.note+'</div>':'')+'</div></div><div style="white-space:nowrap">'+(x.price===null?'價格上船確認':nt(lineAmt(x.price,x.mode,x.qty)))+' <button class="x" onclick="del(\''+x.key+'\')">✕</button></div></div>').join('')||'<div class="empty">還沒選商品</div>';

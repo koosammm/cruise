@@ -429,7 +429,7 @@ function render(){window.__imgN=0;
     let pick='';
     if(ks.length){
       pick='<select class="sel" id="o-'+it.id+'" onchange="pickOpt(\''+it.id+'\')"><option value="">請選擇款式／尺寸</option>'+
-        ks.map(k=>'<option value="'+k.id+'"'+(k.status==='售完'?' disabled':'')+'>'+esc(k.opt)+'｜'+(k.price!==null?nt(dp(k)):'價格上船確認')+(k.status==='售完'?'（缺貨）':'')+'</option>').join('')+'</select>'+
+        ks.map(k=>'<option value="'+k.id+'"'+(k.status==='售完'?' disabled':'')+'>'+esc(k.opt)+'｜'+(k.price!==null?nt(dp(k)):'價格上船確認')+(k.status==='售完'?'（缺貨）':(k.status==='候補'?'（候補）':''))+'</option>').join('')+'</select>'+
         '<input class="note" id="x-'+it.id+'" placeholder="請填想要的款式／尺寸" style="display:none;flex:1 1 100%">';
     }
     c.innerHTML='<div class="media">'+imgHtml(it.id,img0,ks.length?ks[0].id:null)+((LUCK.has(it.id)||/碰運氣/.test(it.name+(it.desc||'')))?'<span class="badge luck">碰運氣・不保證'+(it.quota?'｜限量 '+it.quota:'')+'</span>':(it.quota?'<span class="badge">限量 '+it.quota+'</span>':''))+(soldAll?'<span class="badge sold">已售完</span>':'')+'</div>'+
@@ -473,6 +473,8 @@ function priceHtml(it,ks){
   return '<b>'+nt(mn)+' 起</b> <small>依款式</small>';
 }
 function isFull(it,ks,k){
+  if(k&&k.status==='候補')return true;
+  if(!k&&(it.status==='候補'||(ks.length>0&&ks.every(x=>x.status==='候補'))))return true;
   if(k&&k.quota)return k.taken>=k.quota;
   if(it.quota){const t=ks.length?ks.reduce((a,x)=>a+x.taken,0):it.taken;return t>=it.quota}
   return false;
@@ -481,6 +483,7 @@ function tagsHtml(it,ks,k){
   let tags='';const tk=ks.length?ks.reduce((a,x)=>a+x.taken,0):it.taken;
   if(k&&k.quota)tags+='<span class="tag'+(k.taken>=k.quota?' warn':'')+'">此款名額 '+k.quota+'・已登記 '+k.taken+(k.taken>=k.quota?'（候補）':'')+'</span>';
   else if(it.quota)tags+='<span class="tag'+(tk>=it.quota?' warn':'')+'">名額 '+it.quota+'・已登記 '+tk+(tk>=it.quota?'（候補）':'')+'</span>';
+  if((k&&k.status==='候補')||(!k&&(it.status==='候補'||(ks.length>0&&ks.every(x=>x.status==='候補')))))tags+='<span class="tag warn">候補中</span>';
   const tax=(k&&k.tax)||it.tax||(ks[0]&&ks[0].tax)||'';
   if(it.status==='售完'||(k&&k.status==='售完'))tags+='<span class="tag warn">已售完</span>';
   return tags;
@@ -556,7 +559,7 @@ function renderMine(){
       const gq=(l.status==='已買到'||l.status==='部分買到')?(l.alloc!==null?l.alloc:l.qty):0;if(gq>0){bought++;if(l.price!==null)pay+=lineAmt(l.price,l.mode,gq)}
       const rank=(l.rank&&l.quota&&(l.status==='已登記'||l.status==='候補'))?(()=>{const ah=l.rank-1,inq=Math.max(0,Math.min(l.qty,l.quota-ah));return '<div class="gray">'+(inq>=l.qty?'名額內・排第 '+l.rank+' 位（名額 '+l.quota+'）':(inq<=0?'<b style="color:var(--r)">候補第 '+(ah-l.quota+1)+' 位</b>（名額 '+l.quota+' 已滿）':'名額內 '+inq+' 個、<b style="color:var(--r)">候補 '+(l.qty-inq)+' 個</b>'))+'</div>'})():'';
       const mins=Number(r.settings['後悔期分鐘']||10),left=Math.ceil((l.ts+mins*60000-Date.now())/60000);
-      const cancel=(l.status==='已登記'&&left>0)?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px;white-space:nowrap" onclick="cancelL(\''+l.lid+'\',0)">取消（剩 '+left+' 分）</button>':((l.status==='已登記'||l.status==='候補')?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px;white-space:nowrap" onclick="cancelL(\''+l.lid+'\',1)">申請取消</button>':'');
+      const cancel=((l.status==='已登記'||l.status==='候補')&&left>0)?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px;white-space:nowrap" onclick="cancelL(\''+l.lid+'\',0)">取消（剩 '+left+' 分）</button>':((l.status==='已登記'||l.status==='候補')?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px;white-space:nowrap" onclick="cancelL(\''+l.lid+'\',1)">申請取消</button>':'');
       return (i===0?CHG:'')+'<div class="ol"><div class="lt">'+thumbHtml(l.id)+'<div><div class="nm" style="font-size:14px">'+l.name+' ×'+l.qty+'</div><div class="gray">'+l.time+(l.note?'　備註：'+l.note:'')+'</div>'+rank+'</div></div><div style="text-align:right"><span class="st '+(cls[l.status]||'d')+'">'+(l.status==='部分買到'?'部分買到 '+l.alloc+'/'+l.qty:l.status)+'</span><div class="gray">'+(l.price===null?'價格上船確認':nt(lineAmt(l.price,l.mode,l.qty)))+'</div>'+cancel+'</div></div>';
     };
     const actL=r.lines.filter(l=>l.status!=='已取消'),cancL=r.lines.filter(l=>l.status==='已取消');

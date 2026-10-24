@@ -455,10 +455,10 @@ function needNote(it,ks){return !ks.length&&(/^其他/.test(it.name||'')||/^請�
 function noteHint(it){return /^請填/.test(it.desc||'')?it.desc:'請填想要的品項'}
 function isOther(k){return /^其他/.test(k.opt||'')}
 function fx(k){                                                               // 小字公式（不寫中文）
-  const sg=k.tax==='SGD',cur=sg?'SGD':'USD',rate=sg?26:33,t18='';
-  if(k.mode==='加500')return cur+' × '+rate+' + 500';
+  const sg=k.tax==='SGD',cur=sg?'SGD':'USD',rate=sg?26:33,t18='',ud=(k.usd!==null)?(k.tax==='＋18%'?Math.round(k.usd*118)/100:k.usd):null;
+  if(k.mode==='加500')return cur+(ud!==null?' '+ud:'')+' × '+rate+' + 500';
   if(k.mode==='一口價')return '';
-  return cur+(k.usd!==null&&k.price!==null?' '+k.usd:'')+t18+' × '+rate+' + 10%';
+  return cur+(ud!==null&&k.price!==null?' '+ud:'')+' × '+rate+' + 10%';
 }
 function onePrice(k){
   if(k.price===null)return '<b>價格上船確認</b> <small>'+fx(k)+'</small>';

@@ -346,7 +346,8 @@ function kids(it){return DATA.items.filter(k=>k.parent===it.id&&k.status!=='下�
 function imgsOf(it){const ks=kids(it);let arr=[],map=null;
  if(it.imgs>0){for(let i=1;i<=it.imgs;i++)arr.push(IMG+it.id+'_'+i+'.jpg');if(it.optImg){map=it.optImg.split(',').map(x=>Math.max(0,Math.min(arr.length-1,parseInt(x,10)||0)))}}
  else if(ks.length){map=[];ks.forEach(k=>{if(k.imgs>0){map.push(arr.length);arr.push(IMG+k.id+'_1.jpg')}else map.push(null)});if(!arr.length)map=null}
- if(!arr.length){if(ks.length){map=ks.map((k,i)=>i);arr=ks.map(k=>IMG+k.id+'.jpg')}else{arr=[IMG+it.id+'.jpg'];map=null}}
+ if(!arr.length){arr=[IMG+it.id+'.jpg'];if(ks.length){map=ks.map((k,i)=>i+1);ks.forEach(k=>arr.push(IMG+k.id+'.jpg'))}else map=null}
+ if(MISS.size){const keep=[],idx={};arr.forEach((u,i)=>{if(!MISS.has(u)){idx[i]=keep.length;keep.push(u)}});if(map)map=map.map(m=>m==null?null:(idx[m]!=null?idx[m]:(idx[0]!=null?idx[0]:null)));arr=keep}
  return {arr,map}}
 function closedGroup(g){return !g||g.state==='已結團'||g.state==='隱藏'||(g.deadline&&new Date()>new Date(g.deadline))}
 function fee(p){return Math.round(p*(DATA.settings.feeRate||0.1))}
@@ -364,7 +365,7 @@ function idNum(id){const m=String(id).match(/(\d+)/);return m?parseInt(m[1],10):
 function sortItems(a){a=a.slice();if(SORT==='new')return a.sort((x,y)=>idNum(y.id)-idNum(x.id));const up=SORT==='pa';return a.sort((x,y)=>{const px=minPrice(x),py=minPrice(y);if(px===null)return 1;if(py===null)return -1;return up?px-py:py-px})}
 let PG=0;function goPage(n){PG=n;render();const t=$('#subtabs');window.scrollTo({top:(t&&t.offsetHeight?t.offsetTop-70:0),behavior:'auto'})}
 function P(id){return DATA.items.find(x=>x.id===id)}
-function legacyMiss(img){const m=img.closest('.media');img.remove();if(m&&!m.querySelector('img')&&!m.querySelector('.ph')){const d=document.createElement('div');d.className='ph';d.textContent='🛍️';m.prepend(d);const s=m.querySelector('.strip');if(s)s.remove();const dots=m.querySelector('.dots');if(dots)dots.remove();const c=m.querySelector('.cnt');if(c)c.remove()}}
+const MISS=new Set();function legacyMiss(img){const u=img.getAttribute('src');if(MISS.has(u))return;MISS.add(u);const m=img.closest('.media');const s=m&&m.querySelector('.strip');const id=s?s.id.slice(2):null;const it=id&&DATA.items.find(x=>x.id===id);if(it&&m){const w=document.createElement('div');w.innerHTML=gallery(it);m.replaceWith(w.firstChild)}else img.remove()}
 function route(){PG=0;const p=decodeURIComponent(location.hash.replace(/^#\/?/,'')).split('/');tab=null;myTab=false;sub='全部';SQ='';
  if(p[0]==='g'&&G(p[1])){tab=p[1];if(p[2])sub=p[2]}else if(p[0]==='mine'){myTab=true}else if(p[0]==='s'){SQ=p.slice(1).join('/')}
  const q=$('#q');if(q&&document.activeElement!==q)q.value=SQ;render();if(!(p[0]==='g'&&p[2]))window.scrollTo(0,0)}

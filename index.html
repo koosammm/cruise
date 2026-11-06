@@ -86,7 +86,7 @@ main{padding:12px 16px 0;max-width:1180px;margin:0 auto}
 .cb{display:flex;flex-direction:column;flex:1;min-width:0;padding:0 4px 0 6px}
 .nm{font-weight:800;font-size:16px;line-height:1.35}
 .pr{margin-top:4px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.pr b{font-size:22px;color:var(--gc);line-height:1.2;font-weight:800}
-.pr small{font-size:11px;color:var(--mut)}
+.pr small{font-size:11px;color:var(--mut)}.pr s.ref{font-size:12px;color:var(--mut);text-decoration:line-through}
 .tg{margin-top:4px}.tg:empty{display:none}
 .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;background:var(--gc2);color:var(--gc);margin:0 4px 2px 0}.tag.warn{background:#f8e4e1;color:var(--r)}
 .opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -352,8 +352,12 @@ function imgsOf(it){const ks=kids(it);let arr=[],map=null;
 function closedGroup(g){return !g||g.state==='已結團'||g.state==='隱藏'||(g.deadline&&new Date()>new Date(g.deadline))}
 function fee(p){return Math.round(p*(DATA.settings.feeRate||0.1))}
 function dp(k){return k.price===null?null:(k.mode==='一般'?k.price+fee(k.price):k.price)}
-function priceHtml(it,k){const x=k||it;if(x.price===null)return '<b>價格待確認</b><small>'+(k?esc(k.opt):'')+'</small>';return '<b>'+nt(dp(x))+'</b><small>'+(k?esc(k.opt):(x.mode==='一般'?'含代購費':'代購價'))+'</small>'}
-function priceRange(it,ks){const known=ks.filter(k=>k.price!==null);if(!known.length)return '<b>價格待確認</b><small>依款式</small>';const ps=known.map(dp),mn=Math.min(...ps),mx=Math.max(...ps);if(mn===mx&&known.length===ks.length)return '<b>'+nt(mn)+'</b><small>'+(it.mode==='一般'?'含代購費':'代購價')+'</small>';return '<b>'+nt(mn)+' 起</b><small>依款式</small>'}
+const REFRE=/[｜|]?\s*台灣(?:參考|專櫃)價\s*NT\$\s*([\d,]+)/;
+function refOf(it){const m=(it&&it.desc||'').match(REFRE);return m?parseInt(m[1].replace(/,/g,''),10):null}
+function dsc(it){return (it.desc||'').replace(REFRE,'').trim()}
+function refHtml(it,p){const r=refOf(it);return (r&&p!==null&&r>p)?'<s class="ref">台灣參考價 '+nt(r)+'</s>':''}
+function priceHtml(it,k){const x=k||it;if(x.price===null)return '<b>價格待確認</b><small>'+(k?esc(k.opt):'')+'</small>';return '<b>'+nt(dp(x))+'</b>'+refHtml(it,dp(x))+'<small>'+(k?esc(k.opt):(x.mode==='一般'?'含代購費':'代購價'))+'</small>'}
+function priceRange(it,ks){const known=ks.filter(k=>k.price!==null);if(!known.length)return '<b>價格待確認</b><small>依款式</small>';const ps=known.map(dp),mn=Math.min(...ps),mx=Math.max(...ps);if(mn===mx&&known.length===ks.length)return '<b>'+nt(mn)+'</b>'+refHtml(it,mn)+'<small>'+(it.mode==='一般'?'含代購費':'代購價')+'</small>';return '<b>'+nt(mn)+' 起</b><small>依款式</small>'}
 function isFull(it,ks,k){if(k&&k.status==='候補')return true;if(!k&&(it.status==='候補'||(ks.length>0&&ks.every(x=>x.status==='候補'))))return true;if(k&&k.quota)return k.taken>=k.quota;if(it.quota){const t=ks.length?ks.reduce((a,x)=>a+x.taken,0):it.taken;return t>=it.quota}return false}
 function isOther(k){return /^其他/.test(k.opt||'')}
 function needNote(it,ks){return !ks.length&&(/^其他/.test(it.name||'')||/^請填/.test(it.desc||''))}
@@ -438,7 +442,7 @@ function card(it){const g=G(it.g)||{},closed=closedGroup(g),ks=kids(it),full=isF
  const c=document.createElement('div');c.className='card'+((closed||soldAll)?' closed':'');c.id='k-'+it.id;
  const k=PICK[it.id]!=null?ks[PICK[it.id]]:null;
  const noteBox=((k&&isOther(k))||needNote(it,ks)||/備註/.test(it.desc||''))?'<input class="note" id="n-'+it.id+'" placeholder="'+(needNote(it,ks)?esc(/^請填/.test(it.desc||'')?it.desc:'請填想要的品項'):(k&&isOther(k)?'請填想要的款式／尺寸':'備註（款式／尺寸／角色）'))+'" value="'+esc(NOTE[it.id]||'')+'" oninput="NOTE[\''+it.id+'\']=this.value">':'';
- c.innerHTML=gallery(it)+'<div class="cb"><div class="nm">'+esc(it.name)+'</div>'+(it.desc&&!/^請填/.test(it.desc)?'<div class="ds">'+esc(it.desc)+'</div>':'')+'<div class="pr" id="p-'+it.id+'">'+(ks.length?(k?priceHtml(it,k):priceRange(it,ks)):priceHtml(it))+'</div>'+optsHtml(it,ks)+noteBox+'<div class="row"><div class="qty"><button onclick="q(\''+it.id+'\',-1)">−</button><span id="q-'+it.id+'">'+(Q[it.id]||1)+'</span><button onclick="q(\''+it.id+'\',1)">＋</button></div><button class="add'+(need&&!closed?' need':'')+'" id="a-'+it.id+'" '+((closed||soldAll)?'disabled':'')+' onclick="add(\''+it.id+'\')">'+(g.state==='已結團'?'已結團':(closed?'已截止':(soldAll?'已售完':(need?'先選款式':(isFull(it,ks,k)?'加入候補':'加入購物車')))))+'</button></div></div>';
+ c.innerHTML=gallery(it)+'<div class="cb"><div class="nm">'+esc(it.name)+'</div>'+(dsc(it)&&!/^請填/.test(it.desc)?'<div class="ds">'+esc(dsc(it))+'</div>':'')+'<div class="pr" id="p-'+it.id+'">'+(ks.length?(k?priceHtml(it,k):priceRange(it,ks)):priceHtml(it))+'</div>'+optsHtml(it,ks)+noteBox+'<div class="row"><div class="qty"><button onclick="q(\''+it.id+'\',-1)">−</button><span id="q-'+it.id+'">'+(Q[it.id]||1)+'</span><button onclick="q(\''+it.id+'\',1)">＋</button></div><button class="add'+(need&&!closed?' need':'')+'" id="a-'+it.id+'" '+((closed||soldAll)?'disabled':'')+' onclick="add(\''+it.id+'\')">'+(g.state==='已結團'?'已結團':(closed?'已截止':(soldAll?'已售完':(need?'先選款式':(isFull(it,ks,k)?'加入候補':'加入購物車')))))+'</button></div></div>';
  return c}
 function pickOpt(id,i){const it=DATA.items.find(x=>x.id===id),ks=kids(it);PICK[id]=i;const k=i==null?null:ks[i];
  $('#p-'+id).innerHTML=k?priceHtml(it,k):priceRange(it,ks);

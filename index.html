@@ -242,15 +242,14 @@ body{background:var(--gc3,var(--bg))}
 </style>
 <style id="fix1108">/* ===== 1108 卡片方案 B：圖片填滿、價格＋數量＋按鈕同一列 ===== */
 .strip img{object-fit:cover}
-.card .foot{margin-top:auto;padding:10px 0 0;border-top:1px dashed var(--line);gap:6px;flex-wrap:nowrap}
-.card .cb .foot{margin-top:auto}
-.foot .pr{flex-direction:column;align-items:flex-start;gap:0;margin:0;flex:1;min-width:0}
-.foot .pr small{display:none}
-.foot .pr small.pl{display:block;font-size:11px;font-weight:500;color:var(--mut);line-height:1.2}
-.foot .pr b{font-size:19px;white-space:nowrap}
-.foot .pr s.ref{font-size:11px;white-space:normal;line-height:1.25}
-.foot .qty button{width:28px;height:36px;font-size:16px}.foot .qty span{width:20px}
-.foot .add{flex:0 0 auto;height:38px;padding:0 14px;font-size:14px;letter-spacing:.02em}
+.card .cfoot{margin-top:auto;font-size:inherit;line-height:normal;color:inherit;max-width:none;width:100%;padding:10px 0 0;border-top:1px dashed var(--line);gap:6px;flex-wrap:nowrap}
+.cfoot .pr{flex-direction:column;align-items:flex-start;gap:0;margin:0;flex:1;min-width:0}
+.cfoot .pr small{display:none}
+.cfoot .pr small.pl{display:block;font-size:11px;font-weight:500;color:var(--mut);line-height:1.2}
+.cfoot .pr b{font-size:19px;white-space:nowrap}
+.cfoot .pr s.ref{font-size:11px;white-space:normal;line-height:1.25}
+.cfoot .qty button{width:28px;height:36px;font-size:16px}.cfoot .qty span{width:20px}
+.cfoot .add{flex:0 0 auto;height:38px;padding:0 14px;font-size:14px;letter-spacing:.02em}
 .ds{color:var(--mut);font-size:13px}
 </style>
 </head>
@@ -458,7 +457,7 @@ function card(it){const g=G(it.g)||{},closed=closedGroup(g),ks=kids(it),full=isF
  const c=document.createElement('div');c.className='card'+((closed||soldAll)?' closed':'');c.id='k-'+it.id;
  const k=PICK[it.id]!=null?ks[PICK[it.id]]:null;
  const noteBox=((k&&isOther(k))||needNote(it,ks)||/備註/.test(it.desc||''))?'<input class="note" id="n-'+it.id+'" placeholder="'+(needNote(it,ks)?esc(/^請填/.test(it.desc||'')?it.desc:'請填想要的品項'):(k&&isOther(k)?'請填想要的款式／尺寸':'備註（款式／尺寸／角色）'))+'" value="'+esc(NOTE[it.id]||'')+'" oninput="NOTE[\''+it.id+'\']=this.value">':'';
- c.innerHTML=gallery(it)+'<div class="cb"><div class="nm">'+esc(it.name)+'</div>'+tagHtml(it)+(dsc(it)&&!/^請填/.test(it.desc)?'<div class="ds">'+esc(dsc(it))+'</div>':'')+optsHtml(it,ks)+noteBox+'<div class="row foot"><div class="pr" id="p-'+it.id+'">'+(ks.length?(k?priceHtml(it,k):priceRange(it,ks)):priceHtml(it))+'</div><div class="qty"><button onclick="q(\''+it.id+'\',-1)">−</button><span id="q-'+it.id+'">'+(Q[it.id]||1)+'</span><button onclick="q(\''+it.id+'\',1)">＋</button></div><button class="add'+(need&&!closed?' need':'')+'" id="a-'+it.id+'" '+((closed||soldAll)?'disabled':'')+' onclick="add(\''+it.id+'\')">'+(g.state==='已結團'?'已結團':(closed?'已截止':(soldAll?'已售完':(need?'先選款式':(isFull(it,ks,k)?'加入候補':'加入購物車')))))+'</button></div></div>';
+ c.innerHTML=gallery(it)+'<div class="cb"><div class="nm">'+esc(it.name)+'</div>'+tagHtml(it)+(dsc(it)&&!/^請填/.test(it.desc)?'<div class="ds">'+esc(dsc(it))+'</div>':'')+optsHtml(it,ks)+noteBox+'<div class="row cfoot"><div class="pr" id="p-'+it.id+'">'+(ks.length?(k?priceHtml(it,k):priceRange(it,ks)):priceHtml(it))+'</div><div class="qty"><button onclick="q(\''+it.id+'\',-1)">−</button><span id="q-'+it.id+'">'+(Q[it.id]||1)+'</span><button onclick="q(\''+it.id+'\',1)">＋</button></div><button class="add'+(need&&!closed?' need':'')+'" id="a-'+it.id+'" '+((closed||soldAll)?'disabled':'')+' onclick="add(\''+it.id+'\')">'+(g.state==='已結團'?'已結團':(closed?'已截止':(soldAll?'已售完':(need?'先選款式':(isFull(it,ks,k)?'加入候補':'加入購物車')))))+'</button></div></div>';
  return c}
 function pickOpt(id,i){const it=DATA.items.find(x=>x.id===id),ks=kids(it);PICK[id]=i;const k=i==null?null:ks[i];
  $('#p-'+id).innerHTML=k?priceHtml(it,k):priceRange(it,ks);

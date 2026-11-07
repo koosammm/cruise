@@ -405,7 +405,7 @@ function isOther(k){return /^其他/.test(k.opt||'')}
 function needNote(it,ks){return !ks.length&&(/^其他/.test(it.name||'')||/^請填/.test(it.desc||''))}
 
 // ===== 路由 =====
-let SORT='';const SUBORD=['特價區','聖誕限定','徽章','聯名商品','包包配件','娃娃服飾'];function setSort(v){SORT=v;PG=0;render()}
+let SORT='';const CHR=[[/奇奇|蒂蒂/,'奇奇蒂蒂'],[/維尼|屹耳|跳跳虎|小豬|小荳|袋鼠媽媽|兔子瑞比/,'維尼'],[/史迪奇/,'史迪奇'],[/達菲|雪莉玫|玲娜貝兒|星黛露|傑拉托尼|史黛拉|可琦安|奧樂米/,'達菲'],[/烏蘇拉|庫伊拉|黑魔女|紅心皇后|黑帝斯|反派/,'反派'],[/愛麗絲/,'愛麗絲'],[/公主|王子|仙杜瑞拉|樂佩|小美人魚|愛麗兒|寶嘉康蒂|莫娜|莫那|白雪|艾莎|貝兒/,'公主'],[/玩具總動員|巴斯|胡迪|火腿豬|熊抱哥|抱抱龍|三眼怪/,'玩具總動員'],[/怪獸電力|毛怪|大眼仔/,'怪獸電力'],[/Bluey|布麗/i,'Bluey'],[/小叮噹|彼得潘/,'小叮噹'],[/小飛象/,'小飛象'],[/星際大戰|尤達|伊沃克/,'星際大戰'],[/Marvel|漫威|奇異博士/i,'漫威'],[/動物方城市/,'動物方城市'],[/瑪麗貓/,'瑪麗貓'],[/米奇|米妮/,'米奇米妮'],[/唐老鴨|黛西|三姪子/,'唐老鴨'],[/高飛|麥斯/,'高飛'],[/布魯托/,'布魯托']];function chrOf(i){const n=i.name||'';for(const c of CHR)if(c[0].test(n))return c[1];return '#'+i.id}const SUBORD=['特價區','聖誕限定','徽章','聯名商品','包包配件','娃娃服飾'];function setSort(v){SORT=v;PG=0;render()}
 function minPrice(it){const ks=kids(it);const ps=(ks.length?ks:[it]).map(dp).filter(x=>x!==null);return ps.length?Math.min(...ps):null}
 function idNum(id){const m=String(id).match(/(\d+)/);return m?parseInt(m[1],10):0}
 function sortItems(a){a=a.slice();if(SORT==='new')return a.sort((x,y)=>idNum(y.id)-idNum(x.id));const up=SORT==='pa';return a.sort((x,y)=>{const px=minPrice(x),py=minPrice(y);if(px===null)return 1;if(py===null)return -1;return up?px-py:py-px})}
@@ -458,7 +458,7 @@ function render(){
  if(myTab){const b=$('#band');b.className='band';$('#band .back').innerHTML=IC.back;$('#bandName').textContent='我的訂單';$('#bandSub').textContent=idOK?esc(ident().nick)+'｜***'+ident().phone.slice(-3):'';$('#bandCd').textContent='';renderMine();bar();return}
  $('#band .back').innerHTML=IC.back;$('#bandName').textContent=g.name;$('#bandSub').textContent=g.sub;$('#bandCd').textContent=cd(g);
  const all=DATA.items.filter(i=>i.g===tab&&!i.parent&&i.status!=='下架'&&(i.status!=='隱藏'||SHOWALL));
- const subs=[...new Set(all.map(i=>i.sub).filter(Boolean))];if(tab==='GS'){const so=x=>{const k=SUBORD.indexOf(x);return k<0?99:k};subs.sort((x,y)=>so(x)-so(y));all.sort((x,y)=>(so(x.sub)-so(y.sub))||(idNum(y.id)-idNum(x.id)))}{const o=$('#sortSel').options[0];if(o)o.textContent=tab==='GS'?'預設（最新在前）':'推薦'}
+ const subs=[...new Set(all.map(i=>i.sub).filter(Boolean))];if(tab==='GS'){const so=x=>{const k=SUBORD.indexOf(x);return k<0?99:k};subs.sort((x,y)=>so(x)-so(y));const gk=i=>i.sub+'|'+chrOf(i),gm={};all.forEach(i=>{const k=gk(i),n=idNum(i.id);if(!(gm[k]>=n))gm[k]=n});all.sort((x,y)=>(so(x.sub)-so(y.sub))||(gm[gk(y)]-gm[gk(x)])||(idNum(y.id)-idNum(x.id)))}{const o=$('#sortSel').options[0];if(o)o.textContent=tab==='GS'?'預設（最新在前）':'推薦'}
  if(subs.length>1){['全部'].concat(subs).forEach(s=>{const b=document.createElement('button');b.className=(s===sub?'on':'')+(s==='特價區'?' sale':'');b.textContent=s==='特價區'?'🔥 特價區':s;b.onclick=()=>goSub(s);st.appendChild(b)})}
  let items=all.filter(i=>sub==='全部'||i.sub===sub);$('#sorter').style.display=items.length>1?'':'none';$('#sortSel').value=SORT;if(SORT)items=sortItems(items);
  if(g.note){const n=document.createElement('div');n.className='gnote';n.textContent=g.note;v.appendChild(n)}

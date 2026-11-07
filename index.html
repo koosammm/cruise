@@ -51,6 +51,8 @@ button{cursor:pointer;font-family:inherit}
 .pk .ths span{flex:1;align-self:flex-end;text-align:right;font-size:12px;opacity:.9}
 .pk .cta{display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.18);padding:10px 16px;font-size:14px;font-weight:800;letter-spacing:.06em}
 .pk .cta i{font-style:normal;font-weight:400;font-size:12px;opacity:.85}
+.pk{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start}.pk .hd{flex:1;align-items:flex-start}.pk .hd em{margin-top:14px}.pk .cta{margin-top:auto}
+.pr small.pl{font-size:13px;font-weight:700;color:var(--gc);order:0}
 /* ===== 團內：頂部色帶（永遠固定） ===== */
 .band{position:sticky;top:0;z-index:7;background:var(--gc);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.14)}
 .band .in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 12px}
@@ -357,8 +359,8 @@ function refOf(it){const m=(it&&it.desc||'').match(REFRE);return m?parseInt(m[1]
 const TAGRE=/#([^\s#｜|・,，]+)/g;function tagsOf(it){return ((it&&it.desc||'').match(TAGRE)||[]).map(t=>t.slice(1))}function tagHtml(it){const t=tagsOf(it);return t.length?'<div class="tg">'+t.map(x=>'<span class="tag'+(/黑五|限定|限時/.test(x)?' warn':'')+'">'+esc(x)+'</span>').join('')+'</div>':''}function dsc(it){return (it.desc||'').replace(REFRE,'').replace(TAGRE,'').replace(/[｜|・\s]+$/,'').replace(/^[｜|・\s]+/,'').trim()}
 function refHtml(it,p){const r=refOf(it);return (r&&p!==null&&r>p)?'<s class="ref">台灣參考價 '+nt(r)+'</s>':''}
 function PT(x){return x&&x.mode==='依標價'?'依船上標價':'價格待確認'}
-function priceHtml(it,k){const x=k||it;if(x.price===null)return '<b>'+PT(x)+'</b><small>'+(k?esc(k.opt):'')+'</small>';return '<b>'+nt(dp(x))+'</b>'+refHtml(it,dp(x))+'<small>'+(k?esc(k.opt):(x.mode==='一般'?'含代購費':'代購價'))+'</small>'}
-function priceRange(it,ks){const known=ks.filter(k=>k.price!==null);if(!known.length)return '<b>'+PT(ks[0]||it)+'</b><small>依款式</small>';const ps=known.map(dp),mn=Math.min(...ps),mx=Math.max(...ps);if(mn===mx&&known.length===ks.length)return '<b>'+nt(mn)+'</b>'+refHtml(it,mn)+'<small>'+(it.mode==='一般'?'含代購費':'代購價')+'</small>';return '<b>'+nt(mn)+' 起</b><small>依款式</small>'}
+function priceHtml(it,k){const x=k||it;if(x.price===null)return '<b>'+PT(x)+'</b><small>'+(k?esc(k.opt):'')+'</small>';return '<small class="pl">代購價</small><b>'+nt(dp(x))+'</b>'+refHtml(it,dp(x))+(k?'<small>'+esc(k.opt)+'</small>':'')}
+function priceRange(it,ks){const known=ks.filter(k=>k.price!==null);if(!known.length)return '<b>'+PT(ks[0]||it)+'</b><small>依款式</small>';const ps=known.map(dp),mn=Math.min(...ps),mx=Math.max(...ps);if(mn===mx&&known.length===ks.length)return '<small class="pl">代購價</small><b>'+nt(mn)+'</b>'+refHtml(it,mn);return '<small class="pl">代購價</small><b>'+nt(mn)+' 起</b><small>依款式</small>'}
 function isFull(it,ks,k){if(k&&k.status==='候補')return true;if(!k&&(it.status==='候補'||(ks.length>0&&ks.every(x=>x.status==='候補'))))return true;if(k&&k.quota)return k.taken>=k.quota;if(it.quota){const t=Math.max(it.taken||0,ks.reduce((a,x)=>a+(x.taken||0),0));return t>=it.quota}return false}
 function isOther(k){return /^其他/.test(k.opt||'')}
 function needNote(it,ks){return !ks.length&&(/^其他/.test(it.name||'')||/^請填/.test(it.desc||''))}

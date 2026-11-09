@@ -77,7 +77,7 @@ main{padding:12px 16px 0;max-width:1180px;margin:0 auto}
 .card.closed{opacity:.6}
 .media{position:relative;margin-bottom:8px;border-radius:14px;overflow:hidden;background:var(--soft)}
 .strip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}.strip::-webkit-scrollbar{display:none}
-.strip img{flex:0 0 100%;width:100%;aspect-ratio:5/4;object-fit:contain;scroll-snap-align:start;cursor:zoom-in;display:block}
+.strip img{flex:0 0 100%;width:100%;aspect-ratio:5/4;object-fit:contain;scroll-snap-align:start;cursor:zoom-in;display:block}.strip img:not([src]){background:#f4f1ec}
 .dots{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:5px;pointer-events:none}
 .dots i{width:6px;height:6px;border-radius:50%;background:rgba(42,38,34,.25)}.dots i.on{background:var(--gc);width:16px;border-radius:3px}
 .cnt{position:absolute;right:8px;bottom:8px;background:rgba(42,38,34,.7);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;pointer-events:none;display:flex;align-items:center;gap:4px}
@@ -425,12 +425,12 @@ function toTop(){requestAnimationFrame(()=>{const y=$('main').getBoundingClientR
 function openRules(){$('#rulesOv').classList.add('on')}
 
 // ===== 載入 =====
-const LSK='cruiseCat_v2';let LSIG='';
+const LSK='cruiseCat_v2';let LSIG='';let EAG=0;
 (function(){try{let c=null;try{c=JSON.parse(localStorage.getItem(LSK)||'null')}catch(e){}c=c||window.SNAP;if(c&&c.items){LSIG=JSON.stringify([c.settings,c.groups,c.items]);DATA=c;applyStatic();route()}}catch(e){}})();
 let tries=0;
 function load(){
   if(!DATA){$('#view').innerHTML='<div class="empty">商品載入中…</div>'}
-  API.catalog().then(d=>{tries=0;const sig=JSON.stringify([d.settings,d.groups,d.items]);if(DATA&&sig===LSIG){DATA.now=d.now;return}LSIG=sig;DATA=d;try{localStorage.setItem(LSK,JSON.stringify(d))}catch(e){}applyStatic();route()}).catch(e=>{
+  API.catalog().then(d=>{tries=0;const sig=JSON.stringify([d.settings,d.groups,d.items]);if(DATA&&sig===LSIG){DATA.now=d.now;return}LSIG=sig;DATA=d;try{localStorage.setItem(LSK,JSON.stringify(d))}catch(e){}LASTR=Date.now();if(Object.keys(cart).length){syncCart();repaint()}else{applyStatic();route()}}).catch(e=>{
     tries++;if(e.message==='後台網址未設定'){$('#apiwarn').style.display='';return}
     if(tries<3){setTimeout(load,1500);return}tries=0;
     if(!DATA)$('#view').innerHTML='<div class="empty">連線不穩，商品沒有載入<small>'+esc(e.message||'')+'</small><br><br><button class="go" onclick="load()">重新載入</button></div>';else toast('連線不穩，請稍後再試')})
@@ -463,17 +463,17 @@ function render(){
  let items=all.filter(i=>sub==='全部'||i.sub===sub);$('#sorter').style.display=items.length>1?'':'none';$('#sortSel').value=SORT;if(SORT)items=sortItems(items);
  if(g.note){const n=document.createElement('div');n.className='gnote';n.textContent=g.note;v.appendChild(n)}
  if(!items.length)v.innerHTML+='<div class="empty">這區還沒有商品</div>';
- hinted=false;let last='';const PAGE=24,np=Math.ceil(items.length/PAGE);if(PG>=np)PG=Math.max(0,np-1);const pageItems=items.slice(PG*PAGE,PG*PAGE+PAGE);pageItems.forEach(it=>{if(!SORT&&sub==='全部'&&subs.length>1&&it.sub!==last){last=it.sub;const h=document.createElement('div');h.className='sec';h.innerHTML=esc(it.sub)+'<span>'+all.filter(x=>x.sub===it.sub).length+' 件</span>';v.appendChild(h)}v.appendChild(card(it))});
+ hinted=false;EAG=4;let last='';const PAGE=24,np=Math.ceil(items.length/PAGE);if(PG>=np)PG=Math.max(0,np-1);const pageItems=items.slice(PG*PAGE,PG*PAGE+PAGE);pageItems.forEach(it=>{if(!SORT&&sub==='全部'&&subs.length>1&&it.sub!==last){last=it.sub;const h=document.createElement('div');h.className='sec';h.innerHTML=esc(it.sub)+'<span>'+all.filter(x=>x.sub===it.sub).length+' 件</span>';v.appendChild(h)}v.appendChild(card(it))});
  if(np>1){const pg=document.createElement('div');pg.className='pager';pg.innerHTML='<button '+(PG?'':'disabled')+' onclick="goPage('+(PG-1)+')">‹ 上一頁</button><span>第 '+(PG+1)+' / '+np+' 頁・共 '+items.length+' 件</span><button '+(PG<np-1?'':'disabled')+' onclick="goPage('+(PG+1)+')">下一頁 ›</button>';v.appendChild(pg)}
  bar()}
 function gallery(it){const {arr,map}=imgsOf(it);const n=arr.length;if(!n)return '<div class="media"><div class="ph">🛍️</div>'+badges(it)+'</div>';
  const h=(!hinted&&n>1)?(hinted=true,'<span class="hint">← 左右滑看更多照片 →</span>'):'';
- return '<div class="media"><div class="strip" id="s-'+it.id+'" onscroll="onStrip(\''+it.id+'\')">'+arr.map((u,i)=>'<img src="'+u+'" alt="" '+'loading="lazy" decoding="async"'+' onclick="lbOpen(\''+it.id+'\','+i+')" onerror="legacyMiss(this)">').join('')+'</div>'+(n>1?'<div class="dots" id="d-'+it.id+'">'+arr.map((_,i)=>'<i class="'+(i?'':'on')+'"></i>').join('')+'</div><span class="cnt" id="c-'+it.id+'">📷 1/'+n+'</span>':'')+badges(it)+h+'</div>'}
+ return '<div class="media"><div class="strip" id="s-'+it.id+'" onscroll="onStrip(\''+it.id+'\')">'+arr.map((u,i)=>'<img '+(i?'data-src':'src')+'="'+u+'" alt="" '+(i?'':(EAG>0?(EAG--,'fetchpriority="high"'):'loading="lazy"'))+' decoding="async" onclick="lbOpen(\''+it.id+'\','+i+')" onerror="legacyMiss(this)">').join('')+'</div>'+(n>1?'<div class="dots" id="d-'+it.id+'">'+arr.map((_,i)=>'<i class="'+(i?'':'on')+'"></i>').join('')+'</div><span class="cnt" id="c-'+it.id+'">📷 1/'+n+'</span>':'')+badges(it)+h+'</div>'}
 function badges(it){const ks=kids(it);const full=isFull(it,ks,null);let b='';if(it.sub==='特價區')b+='<span class="sale-rib">SALE</span>';
  if(/碰運氣/.test(it.name+(it.desc||'')))b+='<span class="badge" style="background:var(--acc)">碰運氣・不保證</span>';
  else if(it.quota)b+='<span class="badge'+(full?' sold':'')+'">'+(full?'額滿・可候補':'限量')+'</span>';
  if(it.status==='售完'||(ks.length>0&&ks.every(k=>k.status==='售完')))b+='<span class="badge sold">已售完</span>';return b}
-function onStrip(id){const s=$('#s-'+id);if(!s)return;const i=Math.round(s.scrollLeft/s.clientWidth);const d=$('#d-'+id);if(!d)return;[...d.children].forEach((e,k)=>e.classList.toggle('on',k===i));$('#c-'+id).textContent='📷 '+(i+1)+'/'+d.children.length}
+function onStrip(id){const s=$('#s-'+id);if(!s)return;const i=Math.round(s.scrollLeft/s.clientWidth);[i-1,i,i+1,i+2].forEach(k=>{const e=s.children[k];if(e&&e.dataset.src){e.src=e.dataset.src;e.removeAttribute('data-src')}});const d=$('#d-'+id);if(!d)return;[...d.children].forEach((e,k)=>e.classList.toggle('on',k===i));$('#c-'+id).textContent='📷 '+(i+1)+'/'+d.children.length}
 function szKs(ks){return ks.length>0&&ks.every(k=>/^(XXS|XS|S|M|L|XL|XXL|XXXL|[1-5]X|[2-5]XL|NB|\d+-\d+M|\d+\/\d+|\d+T|\d{1,2}|ONE SIZE|均碼|F)$/i.test(String(k.opt).trim()))}
 function optsHtml(it,ks){if(!ks.length)return '';const lab=k=>'<span class="on1">'+esc(k.opt)+'</span><span class="p">'+(k.status==='售完'?'缺貨':(k.price!==null?nt(dp(k)):PT(k))+(k.status==='候補'?'・候補':''))+'</span>';
  const ptx=k=>(k.status==='售完'?'缺貨':(k.price!==null?nt(dp(k)):PT(k))+(k.status==='候補'?'・候補':''));
@@ -589,6 +589,18 @@ function lbGo(d){lbSet(LB.i+d)}
 function lbClose(){$('#lb').classList.remove('on');document.body.style.overflow=''}
 (()=>{let x0=0,y0=0;const s=$('#lbStage');s.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});s.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy))lbGo(dx<0?1:-1);else if(Math.abs(dy)>80)lbClose()},{passive:true});s.addEventListener('click',e=>{if(e.target===s)lbClose()});
  document.addEventListener('keydown',e=>{if(!$('#lb').classList.contains('on'))return;if(e.key==='ArrowLeft')lbGo(-1);if(e.key==='ArrowRight')lbGo(1);if(e.key==='Escape')lbClose()})})();
+// ===== 自動更新價格：切回畫面、從背景回來、每 3 分鐘 =====
+let LASTR=Date.now(),PEND=false;
+function syncCart(){let c=0;Object.values(cart).forEach(l=>{const t=DATA.items.find(x=>x.id===l.id);if(t&&(t.price!==l.price||t.mode!==l.mode)){l.price=t.price;l.mode=t.mode;c++}});if(c)bar();return c}
+function busyUI(){return ['#lb','#pcf','#idov','#rulesOv'].some(q=>{const e=$(q);return e&&e.classList.contains('on')})||!!document.querySelector('.dlg.on')||(document.activeElement&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))}
+function repaint(){if(busyUI()){PEND=true;return}PEND=false;const y=window.scrollY;applyStatic();render();window.scrollTo(0,y);if($('#ov').classList.contains('on'))openCart()}
+function softRefresh(force){if(!DATA||document.visibilityState==='hidden')return;if(!force&&Date.now()-LASTR<20000){if(PEND)repaint();return}LASTR=Date.now();
+ API.catalog().then(d=>{const sig=JSON.stringify([d.settings,d.groups,d.items]);if(sig===LSIG){DATA.now=d.now;if(PEND)repaint();return}LSIG=sig;DATA=d;try{localStorage.setItem(LSK,JSON.stringify(d))}catch(e){}
+  const c=syncCart();repaint();if(c)toast('購物車已更新為最新價格')}).catch(()=>{})}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')softRefresh()});
+window.addEventListener('pageshow',e=>{if(e.persisted)softRefresh(true)});
+window.addEventListener('focus',()=>softRefresh());
+setInterval(()=>softRefresh(true),180000);
 loadIdent();load();
 
 </script>

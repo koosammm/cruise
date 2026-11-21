@@ -176,7 +176,7 @@ main{padding:12px 16px 0;max-width:1180px;margin:0 auto}
 .bar .sum b{display:block}
 .srch .x{display:none}
 .hl{color:var(--r);font-weight:900}
-.cancl{margin:6px 0 10px}.cancl summary{list-style:none;cursor:pointer;font-size:13px;color:var(--mut);padding:8px 4px}.cancl .ol{opacity:.6}
+.mygrp>summary{list-style:none;cursor:pointer}.mygrp>summary::-webkit-details-marker{display:none}details.mygrp:not([open]){opacity:.75}.cancl{margin:6px 0 10px}.cancl summary{list-style:none;cursor:pointer;font-size:13px;color:var(--mut);padding:8px 4px}.cancl .ol{opacity:.6}
 .ph{display:flex;align-items:center;justify-content:center;aspect-ratio:5/4;font-size:34px;background:var(--soft)}
 .apiwarn{background:var(--r);color:#fff;text-align:center;font-size:12px;padding:6px}
 .empty small{display:block;margin-top:6px}
@@ -373,7 +373,7 @@ check:'<svg class="ic" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>',
 dots:'<svg class="ic" viewBox="0 0 24 24"><path d="M6 12h.01M12 12h.01M18 12h.01"/></svg>',
 x:'<svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
 undo:'<svg class="ic" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>'};
-const STIC={'已登記':'clock','已買到':'check','部分買到':'check','候補':'dots','沒買到':'x','申請取消':'undo','已取消':'x'};
+const STIC={'已登記':'clock','已買到':'check','部分買到':'check','候補':'dots','沒買到':'x','申請取消':'undo','已取消':'x','已出貨':'check'};
 const $=s=>document.querySelector(s);const nt=n=>'NT$ '+Number(n).toLocaleString();
 const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let DATA=null,tab=null,sub='全部',SQ='',myTab=false,cart={},Q={},PICK={},NOTE={},hinted=false,idOK=false;
@@ -562,9 +562,10 @@ function renderMine(){const v=$('#view');const id=ident();
   const gmap={};(r.groups||DATA.groups).forEach(g=>gmap[g.id]=g);
   let h='<div class="mytop"><span class="gray">各團分開出貨、分開付款</span><button class="chgid" onclick="logout()">'+esc(id.nick||'')+'｜***'+id.phone.slice(-3)+'　換人下單</button></div>';
   if(!r.lines.length){v.innerHTML=h+'<div class="empty">這支手機還沒有訂單</div>';return}
-  const cls={'已登記':'a','已買到':'b','部分買到':'b','候補':'e','沒買到':'c','申請取消':'a','已取消':'d'};const mins=Number(r.settings.mins||10);
+  const cls={'已登記':'a','已買到':'b','部分買到':'b','已出貨':'d','候補':'e','沒買到':'c','申請取消':'a','已取消':'d'};const mins=Number(r.settings.mins||10);
   const byG={};r.lines.forEach(l=>{(byG[l.g]=byG[l.g]||[]).push(l)});
-  const order=Object.keys(byG).sort((a,b)=>((gmap[a]||{}).sort||99)-((gmap[b]||{}).sort||99));
+  const LIVE=l=>['已取消','沒買到','已出貨'].indexOf(l.status)<0;const ended=k=>{const x=gmap[k];return !x||x.state==='已結團'||x.state==='隱藏'||!byG[k].some(LIVE)};
+  const order=Object.keys(byG).sort((a,b)=>(ended(a)-ended(b))||(((gmap[a]||{}).sort||99)-((gmap[b]||{}).sort||99)));
   order.forEach(gid=>{const g=gmap[gid]||{id:gid,name:gid,cls:'',step:0,sub:''};const ls=byG[gid];let pay=0,bought=0;
    const rowH=l=>{const gq=(l.status==='已買到'||l.status==='部分買到')?(l.alloc!==null?l.alloc:l.qty):0;if(gq>0){bought++;if(l.price!==null)pay+=dp(l)*gq}
     const qp=l.qpos||((l.rank&&l.quota)?(l.rank-1+l.qty<=l.quota?'in':(l.rank-1>=l.quota?'wait':'part')):'');const rank=(qp&&(l.status==='已登記'||l.status==='候補'))?'<div class="gray">'+(qp==='in'?'名額內':(qp==='wait'?'<b style="color:var(--r)">候補中</b>（名額已滿，有人取消會依序遞補）':'<b style="color:var(--r)">部分在名額內、部分候補</b>'))+'</div>':'';
@@ -572,13 +573,15 @@ function renderMine(){const v=$('#view');const id=ident();
     const cancel=((l.status==='已登記'||l.status==='候補')&&left>0)?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px" onclick="cancelL(\''+l.lid+'\',0)">取消（剩 '+left+' 分）</button>':((l.status==='已登記'||l.status==='候補')?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px" onclick="cancelL(\''+l.lid+'\',1)">申請取消</button>':'');
     const im=l.imgs>0?IMG+l.id+'_1.jpg':(l.parent?(P(l.parent)&&P(l.parent).imgs>0?IMG+l.parent+'_1.jpg':IMG+l.parent+'.jpg'):IMG+l.id+'.jpg');
     return '<div class="ol"><div class="lt"><img class="thumb" src="'+im+'" onerror="this.style.visibility=\'hidden\'"><div><div class="nm">'+esc(l.name)+' ×'+l.qty+'</div><div class="gray">'+l.time+(l.note?'　備註：'+esc(l.note):'')+'</div>'+rank+'</div></div><div><span class="st '+(cls[l.status]||'d')+'">'+(IC[STIC[l.status]]||'')+(l.status==='部分買到'?'部分買到 '+l.alloc+'/'+l.qty:l.status)+'</span><div class="gray">'+(l.price===null?PT(l):nt(dp(l)*l.qty))+'</div>'+cancel+'</div></div>'};
-   const act=ls.filter(l=>l.status!=='已取消'),canc=ls.filter(l=>l.status==='已取消');
-   h+='<div class="mygrp '+(g.cls||'')+'"><div class="h"><span class="code">'+esc(g.id)+'</span><b>'+esc(g.name)+'</b><span class="gray">'+esc(g.sub||'')+'</span></div><div class="flow">'+FLOW.map((f,i)=>'<span class="'+(i<g.step?'done':(i===g.step?'now':''))+'">'+f+'</span>').join('')+'</div>'+act.map(rowH).join('');
+   const E=ended(gid),act=ls.filter(LIVE),ship=ls.filter(l=>l.status==='已出貨'),miss=ls.filter(l=>l.status==='沒買到'),canc=ls.filter(l=>l.status==='已取消');
+   h+=(E?'<details class="mygrp '+(g.cls||'')+'"><summary>':'<div class="mygrp '+(g.cls||'')+'">')+'<div class="h"><span class="code">'+esc(g.id)+'</span><b>'+esc(g.name)+'</b><span class="gray">'+(E?'已完成・'+(ls.length-canc.length)+' 筆（點開查看）':esc(g.sub||''))+'</span></div>'+(E?'</summary>':'')+'<div class="flow">'+FLOW.map((f,i)=>'<span class="'+(i<g.step?'done':(i===g.step?'now':''))+'">'+f+'</span>').join('')+'</div>'+act.map(rowH).join('');
+   if(ship.length)h+='<details class="cancl"><summary>已出貨 '+ship.length+' 筆（點開查看）</summary>'+ship.map(rowH).join('')+'</details>';
+   if(miss.length)h+='<details class="cancl"><summary>沒買到 '+miss.length+' 筆・不收費（點開查看）</summary>'+miss.map(rowH).join('')+'</details>';
    if(canc.length)h+='<details class="cancl"><summary>已取消 '+canc.length+' 筆（點開查看）</summary>'+canc.map(rowH).join('')+'</details>';
    if(bought){const hf=feeOf(pay);h+='<div class="tot">已買到 '+bought+' 筆・應付 <b>'+nt(pay+hf)+'</b>'+(hf?'<div class="gray">含處理費 NT$'+hf+'（未滿 '+r.settings.feeMin.toLocaleString()+'）</div>':'')+'<div class="gray">到貨後開賣貨便付款，運費另計</div>'+(g.shop?'<a class="link" href="'+esc(g.shop)+'" target="_blank" rel="noopener">前往本團賣貨便付款 ›</a>':'')+'</div>'}
    else if(!closedGroup(g))h+='<a class="link" style="background:var(--gc2);color:var(--gc)" onclick="goTab(\''+g.id+'\')">繼續加購 ›</a>';
-   h+='</div>'});
-  v.innerHTML='<div class="notice" style="grid-column:1/-1;border-left:3px solid var(--acc2);padding:2px 12px;font-size:13px;color:#6b6259;margin-bottom:12px">已登記＝收到、排隊中｜已買到＝等到貨出貨｜候補＝名額已滿，有補貨才買｜沒買到＝不收費｜申請取消＝等管理員確認</div>'+h}).catch(e=>{v.innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
+   h+=E?'</details>':'</div>'});
+  v.innerHTML='<div class="notice" style="grid-column:1/-1;border-left:3px solid var(--acc2);padding:2px 12px;font-size:13px;color:#6b6259;margin-bottom:12px">已登記＝收到、排隊中｜已買到＝等到貨出貨｜已出貨＝已寄出｜候補＝名額已滿，有補貨才買｜沒買到＝不收費｜申請取消＝等管理員確認</div>'+h}).catch(e=>{v.innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
 async function cancelL(lid,req){if(!(await ask(req?'確定要申請取消這筆？\n管理員確認後才會取消；如果已經買到，將無法取消。':'確定取消這筆？',req?'申請取消':'確定取消','先不要')))return;const id=ident();API.cancel(id.nick,id.phone,lid).then(x=>{toast(x==='requested'?'已送出取消申請，請等管理員確認':'已取消');renderMine();load()}).catch(e=>toast(e.message))}
 
 // ===== 燈箱 =====

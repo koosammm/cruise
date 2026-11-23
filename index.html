@@ -279,7 +279,17 @@ body{background:var(--gc3,var(--bg))}
 .cfoot .qty button{width:22px;height:34px;font-size:15px}.cfoot .qty span{width:14px;font-size:13px}
 .cfoot .add{flex:1 1 0;min-width:0;height:34px;padding:0 4px;font-size:12px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
-</style></head>
+</style><style>
+.st.f{background:#fdebd3!important;color:#a8550f!important;font-weight:700}
+.payme{background:#fff7ee;border:1.5px solid #f0b47a;border-radius:18px;padding:12px 16px;margin:10px 0;font-size:14px}
+.payme.top{grid-column:1/-1;margin:0 0 14px}.payme.in{background:#fff;border:1px solid #f3cfa8;margin:10px 0 0}
+.payme .pmh{display:flex;align-items:center;gap:6px;color:#a8550f;font-size:15px}.payme .pmh .ic{width:18px;height:18px}
+.payme .pmg{font-weight:700;margin:12px 0 0;display:flex;gap:8px;align-items:center}
+.payme .pmi{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed #f0dcc6}
+.payme .pmi>span:last-child{white-space:nowrap}.payme .pmt{margin-top:8px}.payme .pmt b{font-size:19px;color:#a8550f}
+.payme .pmbtn{background:#d9731f!important;color:#fff!important}.payme .pmno{margin-top:8px}
+</style>
+</head>
 <body>
 <div class="apiwarn" id="apiwarn" style="display:none">後台網址還沒設定（index.html 的 API_URL）</div>
 <header class="hero" id="hero"><div class="hero-in">
@@ -373,12 +383,12 @@ check:'<svg class="ic" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>',
 dots:'<svg class="ic" viewBox="0 0 24 24"><path d="M6 12h.01M12 12h.01M18 12h.01"/></svg>',
 x:'<svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
 undo:'<svg class="ic" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>'};
-const STIC={'已登記':'clock','已買到':'check','部分買到':'check','候補':'dots','沒買到':'x','申請取消':'undo','已取消':'x','已出貨':'check'};
+const STL={'已出貨':'已完成出貨'};const STIC={'已登記':'clock','已買到':'check','部分買到':'check','待賣貨便下單':'receipt','候補':'dots','沒買到':'x','申請取消':'undo','已取消':'x','已出貨':'check'};
 const $=s=>document.querySelector(s);const nt=n=>'NT$ '+Number(n).toLocaleString();
 const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let DATA=null,tab=null,sub='全部',SQ='',myTab=false,cart={},Q={},PICK={},NOTE={},hinted=false,idOK=false;
 const SHOWALL=/[?&]all=1/.test(location.search);
-const FLOW=['已登記','已買到','已到貨','已開賣貨便','已出貨'];
+const FLOW=['已登記','已買到','已到貨','已開賣貨便','已完成出貨'];
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200)}
 function ask(msg,ok,no){return new Promise(res=>{const d=$('#dlg');$('#dlgMsg').textContent=msg;$('#dlgOk').textContent=ok||'確定';$('#dlgNo').textContent=no||'取消';$('#dlgNo').style.display=no===null?'none':'';$('#dlgOk').onclick=()=>{d.classList.remove('on');res(true)};$('#dlgNo').onclick=()=>{d.classList.remove('on');res(false)};d.classList.add('on')})}
 const G=id=>(DATA?DATA.groups:[]).find(g=>g.id===id);
@@ -562,9 +572,11 @@ function renderMine(){const v=$('#view');const id=ident();
   const gmap={};(r.groups||DATA.groups).forEach(g=>gmap[g.id]=g);
   let h='<div class="mytop"><span class="gray">各團分開出貨、分開付款</span><button class="chgid" onclick="logout()">'+esc(id.nick||'')+'｜***'+id.phone.slice(-3)+'　換人下單</button></div>';
   if(!r.lines.length){v.innerHTML=h+'<div class="empty">這支手機還沒有訂單</div>';return}
-  const cls={'已登記':'a','已買到':'b','部分買到':'b','已出貨':'d','候補':'e','沒買到':'c','申請取消':'a','已取消':'d'};const mins=Number(r.settings.mins||10);
+  const cls={'已登記':'a','已買到':'b','部分買到':'b','待賣貨便下單':'f','已出貨':'d','候補':'e','沒買到':'c','申請取消':'a','已取消':'d'};const mins=Number(r.settings.mins||10);
   const byG={};r.lines.forEach(l=>{(byG[l.g]=byG[l.g]||[]).push(l)});
   const LIVE=l=>['已取消','沒買到','已出貨'].indexOf(l.status)<0;const ended=k=>{const x=gmap[k];return !x||x.state==='已結團'||x.state==='隱藏'||!byG[k].some(LIVE)};
+  const wAll=r.lines.filter(l=>l.status==='待賣貨便下單');if(wAll.length){const wg={};wAll.forEach(l=>{(wg[l.g]=wg[l.g]||[]).push(l)});
+   h+='<div class="payme top"><div class="pmh">'+(IC.receipt||'')+'<b>你有 '+wAll.reduce((s,l)=>s+wq(l),0)+' 件商品等待賣貨便下單</b></div><div class="gray">商品已到貨，請依下方連結到賣貨便下單付款，完成後我們就會出貨</div>'+Object.keys(wg).map(k=>{const gg=gmap[k]||{id:k,name:k};return '<div class="pmg"><span class="code">'+esc(gg.id)+'</span>'+esc(gg.name||gg.id)+'</div>'+payBox(wg[k],gg)}).join('')+'</div>'}
   const order=Object.keys(byG).sort((a,b)=>(ended(a)-ended(b))||(((gmap[a]||{}).sort||99)-((gmap[b]||{}).sort||99)));
   order.forEach(gid=>{const g=gmap[gid]||{id:gid,name:gid,cls:'',step:0,sub:''};const ls=byG[gid];let pay=0,bought=0;
    const rowH=l=>{const gq=(l.status==='已買到'||l.status==='部分買到')?(l.alloc!==null?l.alloc:l.qty):0;if(gq>0){bought++;if(l.price!==null)pay+=dp(l)*gq}
@@ -572,16 +584,23 @@ function renderMine(){const v=$('#view');const id=ident();
      const left=Math.ceil((l.ts+mins*60000-Date.now())/60000);
     const cancel=((l.status==='已登記'||l.status==='候補')&&left>0)?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px" onclick="cancelL(\''+l.lid+'\',0)">取消（剩 '+left+' 分）</button>':((l.status==='已登記'||l.status==='候補')?'<button class="btn2" style="font-size:12px;padding:4px 12px;margin-top:6px" onclick="cancelL(\''+l.lid+'\',1)">申請取消</button>':'');
     const im=l.imgs>0?IMG+l.id+'_1.jpg':(l.parent?(P(l.parent)&&P(l.parent).imgs>0?IMG+l.parent+'_1.jpg':IMG+l.parent+'.jpg'):IMG+l.id+'.jpg');
-    return '<div class="ol"><div class="lt"><img class="thumb" src="'+im+'" onerror="this.style.visibility=\'hidden\'"><div><div class="nm">'+esc(l.name)+' ×'+l.qty+'</div><div class="gray">'+l.time+(l.note?'　備註：'+esc(l.note):'')+'</div>'+rank+'</div></div><div><span class="st '+(cls[l.status]||'d')+'">'+(IC[STIC[l.status]]||'')+(l.status==='部分買到'?'部分買到 '+l.alloc+'/'+l.qty:l.status)+'</span><div class="gray">'+(l.price===null?PT(l):nt(dp(l)*l.qty))+'</div>'+cancel+'</div></div>'};
+    return '<div class="ol"><div class="lt"><img class="thumb" src="'+im+'" onerror="this.style.visibility=\'hidden\'"><div><div class="nm">'+esc(l.name)+' ×'+l.qty+'</div><div class="gray">'+l.time+(l.note?'　備註：'+esc(l.note):'')+'</div>'+rank+'</div></div><div><span class="st '+(cls[l.status]||'d')+'">'+(IC[STIC[l.status]]||'')+(l.status==='部分買到'?'部分買到 '+l.alloc+'/'+l.qty:((l.status==='待賣貨便下單'&&l.alloc!==null&&l.alloc<l.qty)?'待賣貨便下單 '+l.alloc+'/'+l.qty:(STL[l.status]||l.status)))+'</span><div class="gray">'+(l.price===null?PT(l):nt(dp(l)*l.qty))+'</div>'+cancel+'</div></div>'};
    const E=ended(gid),act=ls.filter(LIVE),ship=ls.filter(l=>l.status==='已出貨'),miss=ls.filter(l=>l.status==='沒買到'),canc=ls.filter(l=>l.status==='已取消');
    h+=(E?'<details class="mygrp '+(g.cls||'')+'"><summary>':'<div class="mygrp '+(g.cls||'')+'">')+'<div class="h"><span class="code">'+esc(g.id)+'</span><b>'+esc(g.name)+'</b><span class="gray">'+(E?'已完成・'+(ls.length-canc.length)+' 筆（點開查看）':esc(g.sub||''))+'</span></div>'+(E?'</summary>':'')+'<div class="flow">'+FLOW.map((f,i)=>'<span class="'+(i<g.step?'done':(i===g.step?'now':''))+'">'+f+'</span>').join('')+'</div>'+act.map(rowH).join('');
-   if(ship.length)h+='<details class="cancl"><summary>已出貨 '+ship.length+' 筆（點開查看）</summary>'+ship.map(rowH).join('')+'</details>';
+   if(ship.length)h+='<details class="cancl"><summary>已完成出貨 '+ship.length+' 筆（點開查看）</summary>'+ship.map(rowH).join('')+'</details>';
    if(miss.length)h+='<details class="cancl"><summary>沒買到 '+miss.length+' 筆・不收費（點開查看）</summary>'+miss.map(rowH).join('')+'</details>';
    if(canc.length)h+='<details class="cancl"><summary>已取消 '+canc.length+' 筆（點開查看）</summary>'+canc.map(rowH).join('')+'</details>';
    if(bought){const hf=feeOf(pay);h+='<div class="tot">已買到 '+bought+' 筆・應付 <b>'+nt(pay+hf)+'</b>'+(hf?'<div class="gray">含處理費 NT$'+hf+'（未滿 '+r.settings.feeMin.toLocaleString()+'）</div>':'')+'<div class="gray">到貨後開賣貨便付款，運費另計</div>'+(g.shop?'<a class="link" href="'+esc(g.shop)+'" target="_blank" rel="noopener">前往本團賣貨便付款 ›</a>':'')+'</div>'}
    else if(!closedGroup(g))h+='<a class="link" style="background:var(--gc2);color:var(--gc)" onclick="goTab(\''+g.id+'\')">繼續加購 ›</a>';
    h+=E?'</details>':'</div>'});
-  v.innerHTML='<div class="notice" style="grid-column:1/-1;border-left:3px solid var(--acc2);padding:2px 12px;font-size:13px;color:#6b6259;margin-bottom:12px">已登記＝收到、排隊中｜已買到＝等到貨出貨｜已出貨＝已寄出｜候補＝名額已滿，有補貨才買｜沒買到＝不收費｜申請取消＝等管理員確認</div>'+h}).catch(e=>{v.innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
+  v.innerHTML='<div class="notice" style="grid-column:1/-1;border-left:3px solid var(--acc2);padding:2px 12px;font-size:13px;color:#6b6259;margin-bottom:12px">已登記＝收到、排隊中｜已買到＝已買到、等到貨｜待賣貨便下單＝已到貨，請到賣貨便下單付款｜已完成出貨＝已寄出｜候補＝名額已滿，有補貨才買｜沒買到＝不收費｜申請取消＝等管理員確認</div>'+h}).catch(e=>{v.innerHTML='<div class="empty">'+esc(e.message)+'</div>'})}
+function wq(l){return (l.alloc!==null&&l.alloc!==undefined)?l.alloc:l.qty}
+function payBox(ls,g){const by={};ls.forEach(l=>{const u=l.shop||g.shop||'';(by[u]=by[u]||[]).push(l)});
+ return Object.keys(by).map(u=>{const xs=by[u];let s=0,unk=0;xs.forEach(l=>{if(l.price===null)unk++;else s+=dp(l)*wq(l)});
+  return '<div class="payme in">'
+  +xs.map(l=>'<div class="pmi"><span>'+esc(l.name)+' ×'+wq(l)+'<span class="gray">　下單 '+l.time+'</span></span><span>'+(l.price===null?PT(l):nt(dp(l)*wq(l)))+'</span></div>').join('')
+  +'<div class="pmt">商品合計 <b>'+nt(s)+'</b>'+(unk?'<span class="gray">（另有 '+unk+' 筆價格待確認）</span>':'')+'<div class="gray">運費依賣貨便為準</div></div>'
+  +(u?'<a class="link pmbtn" href="'+esc(u)+'" target="_blank" rel="noopener">前往賣貨便下單 ›</a>':'<div class="gray pmno">賣貨便連結會用 LINE 傳給你</div>')+'</div>'}).join('')}
 async function cancelL(lid,req){if(!(await ask(req?'確定要申請取消這筆？\n管理員確認後才會取消；如果已經買到，將無法取消。':'確定取消這筆？',req?'申請取消':'確定取消','先不要')))return;const id=ident();API.cancel(id.nick,id.phone,lid).then(x=>{toast(x==='requested'?'已送出取消申請，請等管理員確認':'已取消');renderMine();load()}).catch(e=>toast(e.message))}
 
 // ===== 燈箱 =====
